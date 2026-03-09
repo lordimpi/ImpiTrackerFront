@@ -1,0 +1,122 @@
+@import 'primeicons/primeicons.css';
+
+:root {
+  color-scheme: dark;
+  --station-floor: linear-gradient(180deg, #07131a, #071017 52%, #050c12);
+  --grid-ink: #07131a;
+  --control-bay: #0c1f27;
+  --ink-strong: #f2f8f6;
+  --ink-weak: #a5b6b2;
+  --ink-faint: #6f817e;
+  --line-subtle: rgba(120, 205, 188, 0.14);
+  --beacon-green: #7ad6c4;
+  --route-cyan: #77c9de;
+  --signal-red: #f17d78;
+  --panel-fill: rgba(9, 18, 24, 0.76);
+  --panel-shadow: none;
+  --radius-panel: 1.35rem;
+  --radius-control: 0.95rem;
+  --space-unit: 0.5rem;
+  --font-headline: 'Bahnschrift', 'Aptos Display', 'Segoe UI Variable Display', 'Segoe UI',
+    sans-serif;
+  --font-body: 'Aptos', 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+}
+
+html {
+  min-height: 100%;
+  background: #050c12;
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top right, rgba(30, 95, 104, 0.2), transparent 24%),
+    var(--station-floor);
+  color: var(--ink-weak);
+  font-family: var(--font-body);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-headline);
+}
+
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+.app-loading-region {
+  position: relative;
+  isolation: isolate;
+}
+
+.p-card {
+  border-radius: var(--radius-panel);
+  border: 1px solid var(--line-subtle);
+  background: var(--panel-fill);
+  box-shadow: var(--panel-shadow);
+}
+
+.p-card .p-card-title {
+  color: var(--ink-strong);
+  font-family: var(--font-headline);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.p-card .p-card-subtitle {
+  color: var(--ink-faint);
+}
+
+.p-inputtext,
+.p-password-input,
+.p-button,
+.p-tag {
+  border-radius: var(--radius-control);
+}
+
+.p-inputtext,
+.p-password-input {
+  width: 100%;
+  background: rgba(8, 18, 24, 0.92);
+  border-color: rgba(122, 214, 196, 0.14);
+  color: var(--ink-strong);
+}
+
+.p-inputtext::placeholder,
+.p-password-input::placeholder {
+  color: var(--ink-faint);
+}
+
+.p-button {
+  font-weight: 600;
+}
+
+.p-button.p-button-secondary {
+  background: rgba(10, 22, 29, 0.88);
+  border-color: rgba(122, 214, 196, 0.16);
+}
+
+.p-toast {
+  max-width: min(26rem, calc(100vw - 2rem));
+}

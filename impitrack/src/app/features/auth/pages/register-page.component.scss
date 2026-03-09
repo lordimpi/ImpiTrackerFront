@@ -1,0 +1,81 @@
+.auth-card-shell {
+  width: min(100%, 31rem);
+}
+
+.auth-card {
+  width: 100%;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+
+  span {
+    color: var(--ink-strong);
+  }
+
+  small {
+    color: var(--signal-red);
+  }
+}
+
+.password-rules {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--line-soft) 82%, transparent);
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--surface-soft) 88%, white);
+  border-color: color-mix(in srgb, var(--beacon-green) 20%, var(--line-soft));
+}
+
+.password-rule {
+  color: var(--signal-red);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.password-rule::before {
+  content: '•';
+  margin-right: 0.45rem;
+  color: var(--signal-red);
+}
+
+.password-rule--ok {
+  color: var(--beacon-green);
+}
+
+.password-rule--ok::before {
+  content: '✓';
+  color: var(--beacon-green);
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.auth-links {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+
+  a {
+    color: var(--beacon-green);
+    text-decoration: none;
+  }
+}
+
+:host ::ng-deep .auth-password-input,
+:host ::ng-deep .p-password,
+:host ::ng-deep .p-password-input {
+  width: 100%;
+}

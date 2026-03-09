@@ -1,0 +1,68 @@
+<section class="page-grid">
+  <div class="app-loading-region profile-card-shell" [attr.aria-busy]="pending()">
+    <p-card class="profile-card">
+      <ng-template pTemplate="title">Perfil actual</ng-template>
+      <ng-template pTemplate="subtitle">Conectado a `GET /api/me` y persistido entre recargas.</ng-template>
+
+      @if (user(); as currentUser) {
+        <dl class="profile-grid">
+          <div>
+            <dt>Nombre</dt>
+            <dd>{{ currentUser.fullName || 'No informado' }}</dd>
+          </div>
+          <div>
+            <dt>Correo</dt>
+            <dd>{{ currentUser.email }}</dd>
+          </div>
+          <div>
+            <dt>Plan</dt>
+            <dd>{{ currentUser.planName || 'Pendiente de asignacion' }}</dd>
+          </div>
+          <div>
+            <dt>Codigo del plan</dt>
+            <dd>{{ currentUser.planCode }}</dd>
+          </div>
+          <div>
+            <dt>GPS usados</dt>
+            <dd>{{ currentUser.usedGps }} / {{ currentUser.maxGps }}</dd>
+          </div>
+        </dl>
+      } @else {
+        <p class="empty-copy">Todavia no hay un snapshot de usuario cargado.</p>
+      }
+
+      @if (errorMessage()) {
+        <p class="error-copy">{{ errorMessage() }}</p>
+      }
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-refresh"
+        label="Actualizar perfil"
+        severity="secondary"
+        [disabled]="pending()"
+        (click)="refreshProfile()"
+      ></button>
+    </p-card>
+
+    @if (pending()) {
+      <app-loading-spinner mode="screen" size="sm" label="Actualizando perfil..." />
+    }
+  </div>
+
+  <p-card class="profile-card">
+    <ng-template pTemplate="title">Envolvente de roles</ng-template>
+    <ng-template pTemplate="subtitle">
+      Estos valores alimentan solo los guards del cliente; la API debe seguir validando la autorizacion.
+    </ng-template>
+
+    <div class="role-list">
+      @for (role of roles(); track role) {
+        <p-tag [value]="role"></p-tag>
+      } @empty {
+        <span class="empty-copy">El token actual no expone roles para este usuario.</span>
+      }
+    </div>
+  </p-card>
+</section>

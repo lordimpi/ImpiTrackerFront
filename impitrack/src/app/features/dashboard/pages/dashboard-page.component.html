@@ -1,0 +1,63 @@
+<section class="dashboard-grid">
+  <p-card class="dashboard-hero">
+    <ng-template pTemplate="title">Shell operativo establecido</ng-template>
+    <ng-template pTemplate="subtitle">
+      La aplicación ya tiene bootstrap de auth seguro para SSR, navegación por roles, base con
+      PrimeNG y estructura orientada por features.
+    </ng-template>
+
+    <div class="hero-readiness">
+      @for (item of readiness(); track item.label) {
+        <article class="hero-readiness__item">
+          <span>{{ item.label }}</span>
+          <p-tag [value]="item.value" [severity]="item.severity"></p-tag>
+        </article>
+      }
+    </div>
+
+    <div class="dashboard-hero__actions">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-window-maximize"
+        label="Ver alcance del MVP"
+        severity="secondary"
+        (click)="roadmapVisible = true"
+      ></button>
+    </div>
+  </p-card>
+
+  <p-card>
+    <ng-template pTemplate="title">Orden de entrega</ng-template>
+    <ol class="sequence-list">
+      <li>Auth y control de acceso</li>
+      <li>Contexto de perfil vía `/api/me`</li>
+      <li>Módulo de dispositivos</li>
+      <li>Administración de usuarios y planes</li>
+      <li>Toolbox de operaciones</li>
+    </ol>
+  </p-card>
+</section>
+
+<p-dialog
+  header="Alcance del MVP"
+  [(visible)]="roadmapVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: 'min(92vw, 42rem)' }"
+>
+  <div class="roadmap-modal">
+    <p>
+      Vamos a priorizar la mejor experiencia de usuario con flujos claros, feedback visible y uso
+      de modales donde aporten contexto o confirmación sin sacar al usuario del flujo principal.
+    </p>
+
+    <ul>
+      <li>Registro, login, refresh token y verificación de correo.</li>
+      <li>Perfil y contexto de sesión persistente.</li>
+      <li>Dispositivos propios con acciones guiadas.</li>
+      <li>Administración y operaciones en módulos separados.</li>
+    </ul>
+  </div>
+</p-dialog>
