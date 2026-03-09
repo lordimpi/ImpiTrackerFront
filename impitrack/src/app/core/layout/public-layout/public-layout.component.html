@@ -1,0 +1,34 @@
+<div class="public-shell">
+  <section class="signal-panel" aria-label="Introducción a IMPITrack">
+    <div class="signal-panel__badge">tablero operativo MVP</div>
+    <h1>{{ headline() }}</h1>
+    <p class="signal-panel__lead">
+      Construimos primero el flujo utilizable de autenticación, contexto de cuenta y shell
+      operativo antes de pasar a dispositivos, administración y diagnósticos.
+    </p>
+
+    <div class="signal-panel__grid" aria-hidden="true">
+      <div class="signal-panel__metric">
+        <span class="metric-label">Cobertura</span>
+        <strong>Auth + Perfil</strong>
+      </div>
+      <div class="signal-panel__metric">
+        <span class="metric-label">Siguiente frente</span>
+        <strong>Dispositivos</strong>
+      </div>
+      <div class="signal-panel__metric">
+        <span class="metric-label">Renderizado</span>
+        <strong>Seguro para SSR</strong>
+      </div>
+    </div>
+
+    <div class="signal-panel__footer">
+      <a routerLink="/auth/login">Entrar a la consola</a>
+      <a routerLink="/auth/register">Crear cuenta</a>
+    </div>
+  </section>
+
+  <section class="auth-panel">
+    <router-outlet />
+  </section>
+</div>

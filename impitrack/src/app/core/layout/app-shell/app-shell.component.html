@@ -1,0 +1,53 @@
+<div class="app-shell">
+  <aside class="rail" aria-label="Navegación principal">
+    <div class="rail__brand">
+      <span class="rail__eyebrow">shell operativo</span>
+      <strong>IMPITrack</strong>
+      <p>Vistas de telemetría listas para crecer por feature, no por parches.</p>
+    </div>
+
+    <nav class="rail__nav">
+      @for (item of visibleItems(); track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="rail__link--active"
+          class="rail__link"
+        >
+          <i [class]="item.icon"></i>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="rail__status">
+      <span class="rail__eyebrow">roles</span>
+      <div class="rail__tags">
+        @for (role of roles(); track role) {
+          <p-tag [value]="role"></p-tag>
+        }
+      </div>
+    </div>
+  </aside>
+
+  <div class="canvas">
+    <header class="canvas__header">
+      <div>
+        <span class="canvas__eyebrow">sesión</span>
+        <h2>{{ displayName() }}</h2>
+      </div>
+
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        icon="pi pi-sign-out"
+        label="Cerrar sesión"
+        (click)="signOut()"
+      ></button>
+    </header>
+
+    <main class="canvas__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

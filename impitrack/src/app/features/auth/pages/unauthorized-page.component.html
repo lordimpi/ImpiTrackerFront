@@ -1,0 +1,14 @@
+<section class="standalone-state">
+  <p-card>
+    <ng-template pTemplate="title">Sección restringida</ng-template>
+    <p>
+      Tu rol actual no tiene acceso a esta sección. Usa la navegación principal para volver a las
+      áreas de cuenta y resumen.
+    </p>
+
+    <div class="standalone-state__actions">
+      <a routerLink="/app/dashboard" pButton label="Volver al resumen"></a>
+      <a routerLink="/app/account" pButton severity="secondary" label="Abrir cuenta"></a>
+    </div>
+  </p-card>
+</section>

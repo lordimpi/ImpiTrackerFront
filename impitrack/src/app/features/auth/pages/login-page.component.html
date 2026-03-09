@@ -1,0 +1,53 @@
+<div class="app-loading-region auth-card-shell" [attr.aria-busy]="pending()">
+  <p-card class="auth-card">
+    <ng-template pTemplate="title">Ingresa al tablero operativo</ng-template>
+    <ng-template pTemplate="subtitle">
+      Usa el flujo real de sesion con JWT, refresh token y arranque seguro para SSR.
+    </ng-template>
+
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+      <label class="field">
+        <span>Usuario o correo</span>
+        <input pInputText type="text" formControlName="userNameOrEmail" autocomplete="username" />
+        @if (form.controls.userNameOrEmail.invalid && form.controls.userNameOrEmail.touched) {
+          <small>Ingresa tu usuario o correo.</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>Contrasena</span>
+        <p-password
+          formControlName="password"
+          [toggleMask]="true"
+          [feedback]="false"
+          autocomplete="current-password"
+          inputStyleClass="auth-password-input"
+        />
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <small>La contrasena debe tener al menos 8 caracteres.</small>
+        }
+      </label>
+
+      @if (submitError()) {
+        <p-message severity="error" [text]="submitError() ?? ''"></p-message>
+      }
+
+      <button
+        pButton
+        type="submit"
+        label="Entrar"
+        [disabled]="pending()"
+        class="auth-submit"
+      ></button>
+    </form>
+
+    <div class="auth-links">
+      <a routerLink="/auth/register">Crear una cuenta</a>
+      <a routerLink="/auth/recover-password">Recuperar contrasena</a>
+    </div>
+  </p-card>
+
+  @if (pending()) {
+    <app-loading-spinner mode="screen" label="Validando acceso..." />
+  }
+</div>
