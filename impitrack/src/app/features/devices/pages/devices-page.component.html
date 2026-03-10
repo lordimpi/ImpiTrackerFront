@@ -1,12 +1,194 @@
-<p-card>
-  <ng-template pTemplate="title">Mis dispositivos</ng-template>
-  <ng-template pTemplate="subtitle">
-    Esta ruta ya quedó preparada para el siguiente corte: listar, vincular, desvincular y ver
-    estado de dispositivos.
-  </ng-template>
+<section class="devices-page">
+  <p-card class="devices-hero">
+    <ng-template pTemplate="title">Mis dispositivos</ng-template>
+    <ng-template pTemplate="subtitle">
+      Vincula tus GPS por IMEI y administra rapidamente los equipos asociados a tu cuenta.
+    </ng-template>
 
-  <p class="placeholder-copy">
-    La ruta lazy y la integración con el shell ya están listas para que la siguiente entrega se
-    enfoque directamente en `/api/me/devices` sin reestructurar otra vez la app.
-  </p>
-</p-card>
+    <div class="devices-hero__meta">
+      <article class="devices-stat">
+        <span class="devices-stat__label">Plan actual</span>
+        <strong>{{ user()?.planName || 'Pendiente de asignacion' }}</strong>
+      </article>
+
+      <article class="devices-stat">
+        <span class="devices-stat__label">Uso disponible</span>
+        <strong>{{ planUsageLabel() }}</strong>
+      </article>
+
+      <p-tag
+        [severity]="canBindMore() ? 'success' : 'warn'"
+        [value]="canBindMore() ? 'Puedes vincular mas GPS' : 'Sin cupos disponibles'"
+      ></p-tag>
+    </div>
+
+    @if (hasDevices()) {
+      <div class="devices-hero__actions">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-plus"
+          label="Vincular dispositivo"
+          [disabled]="pendingInitialLoad() || pendingBind()"
+          (click)="openBindModal()"
+        ></button>
+      </div>
+    }
+  </p-card>
+
+  <div class="app-loading-region devices-content" [attr.aria-busy]="pendingInitialLoad()">
+    @if (featureError()) {
+      <p-card class="devices-state-card">
+        <ng-template pTemplate="title">No pudimos cargar tus dispositivos</ng-template>
+        @if (featureError(); as featureErrorText) {
+          <p-message severity="error" [text]="featureErrorText"></p-message>
+        }
+
+        <div class="devices-state-card__actions">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-refresh"
+            label="Reintentar"
+            severity="secondary"
+            [disabled]="pendingInitialLoad()"
+            (click)="retryLoad()"
+          ></button>
+        </div>
+      </p-card>
+    } @else if (hasDevices()) {
+      <p-card class="devices-table-card">
+        <ng-template pTemplate="title">Dispositivos vinculados</ng-template>
+        <ng-template pTemplate="subtitle">
+          Cada fila representa un IMEI activo bajo tu cuenta actual.
+        </ng-template>
+
+        <p-table [value]="devices()" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>IMEI</th>
+              <th>Fecha de vinculacion</th>
+              <th>Estado</th>
+              <th class="devices-table__actions">Acciones</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-device>
+            <tr>
+              <td>
+                <span class="device-imei">{{ device.imei }}</span>
+              </td>
+              <td>{{ device.boundAtUtc | date: 'medium' }}</td>
+              <td>
+                <p-tag value="Vinculado" severity="info"></p-tag>
+              </td>
+              <td class="devices-table__actions">
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-trash"
+                  label="Desvincular"
+                  severity="secondary"
+                  [disabled]="isUnbinding(device.imei)"
+                  (click)="confirmUnbind(device.imei)"
+                ></button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    } @else {
+      <p-card class="devices-state-card">
+        <ng-template pTemplate="title">Todavia no tienes dispositivos vinculados</ng-template>
+        <ng-template pTemplate="subtitle">
+          Cuando agregues un IMEI valido, aparecera aqui con su fecha de vinculacion.
+        </ng-template>
+
+        <p class="devices-empty-copy">
+          Empieza vinculando tu primer GPS desde el modal rapido y mantendras todo el flujo dentro
+          de esta misma pantalla.
+        </p>
+
+        <div class="devices-state-card__actions">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-plus"
+            label="Vincular primer dispositivo"
+            [disabled]="pendingBind()"
+            (click)="openBindModal()"
+          ></button>
+        </div>
+      </p-card>
+    }
+
+    @if (pendingInitialLoad()) {
+      <app-loading-spinner mode="screen" size="sm" label="Cargando dispositivos..." />
+    }
+  </div>
+</section>
+
+<p-dialog
+  header="Vincular dispositivo"
+  [visible]="bindModalVisible()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!pendingBind()"
+  [dismissableMask]="!pendingBind()"
+  [style]="{ width: 'min(92vw, 30rem)' }"
+  (visibleChange)="!$event ? closeBindModal() : null"
+>
+  <form class="bind-form" [formGroup]="form" (ngSubmit)="submitBind()">
+    <p class="bind-form__copy">
+      Ingresa el IMEI exacto del GPS que quieres asociar a tu cuenta.
+    </p>
+
+    <label class="bind-form__field">
+      <span>IMEI</span>
+      <input
+        pInputText
+        type="text"
+        formControlName="imei"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="Ej. 359339080123456"
+      />
+    </label>
+
+    @if (form.controls.imei.invalid && (form.controls.imei.dirty || form.controls.imei.touched)) {
+      <p-message severity="error" text="Ingresa un IMEI valido entre 8 y 32 caracteres."></p-message>
+    }
+
+    @if (bindErrorMessage(); as bindErrorText) {
+      <p-message severity="error" [text]="bindErrorText"></p-message>
+    }
+
+    <div class="bind-form__footer">
+      <button
+        pButton
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        [disabled]="pendingBind()"
+        (click)="closeBindModal()"
+      ></button>
+
+      <button
+        pButton
+        type="submit"
+        icon="pi pi-check"
+        label="Vincular"
+        [disabled]="form.invalid || pendingBind()"
+      ></button>
+    </div>
+  </form>
+</p-dialog>
+
+@if (pendingBind()) {
+  <app-loading-spinner mode="screen" size="sm" label="Vinculando dispositivo..." />
+}
+
+@if (pendingUnbindImei()) {
+  <app-loading-spinner mode="screen" size="sm" label="Desvinculando dispositivo..." />
+}

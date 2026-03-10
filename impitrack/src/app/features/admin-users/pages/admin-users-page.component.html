@@ -1,12 +1,199 @@
-<p-card>
-  <ng-template pTemplate="title">Usuarios administrativos</ng-template>
-  <ng-template pTemplate="subtitle">
-    Punto de entrada protegido para inspección de usuarios, cambios de plan y administración de
-    propiedad de dispositivos.
-  </ng-template>
+<section class="admin-users-page">
+  <p-card class="admin-users-hero">
+    <ng-template pTemplate="title">Administracion de usuarios</ng-template>
+    <ng-template pTemplate="subtitle">
+      Consulta cuentas, revisa su cuota actual y entra al detalle para cambiar plan o administrar
+      dispositivos.
+    </ng-template>
 
-  <p class="placeholder-copy">
-    El routing del cliente ya exige rol Admin en esta sección. El CRUD real puede entrar después
-    sin tocar shell, guards ni topología de rutas.
-  </p>
-</p-card>
+    <div class="admin-users-hero__meta">
+      <article class="admin-users-stat">
+        <span class="admin-users-stat__label">Usuarios visibles</span>
+        <strong>{{ users().length }}</strong>
+      </article>
+
+      <article class="admin-users-stat">
+        <span class="admin-users-stat__label">Total backend</span>
+        <strong>{{ totalItems() }}</strong>
+      </article>
+
+      <p-tag [value]="activeFiltersLabel()" severity="info"></p-tag>
+    </div>
+  </p-card>
+
+  <p-card class="admin-users-filters">
+    <ng-template pTemplate="title">Filtros y orden</ng-template>
+    <ng-template pTemplate="subtitle">
+      La busqueda se realiza en servidor por correo o nombre; el plan filtra por codigo exacto.
+    </ng-template>
+
+    <form class="filters-form" [formGroup]="form" (ngSubmit)="submitFilters()">
+      <label class="filters-form__field filters-form__field--search">
+        <span>Buscar usuario</span>
+        <input
+          pInputText
+          type="text"
+          formControlName="search"
+          autocomplete="off"
+          placeholder="Correo o nombre visible"
+        />
+      </label>
+
+      <label class="filters-form__field">
+        <span>Plan</span>
+        <p-select
+          formControlName="planCode"
+          [options]="planFilterOptions()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todos"
+        ></p-select>
+      </label>
+
+      <label class="filters-form__field">
+        <span>Ordenar por</span>
+        <p-select
+          formControlName="sortBy"
+          [options]="sortFieldOptions"
+          optionLabel="label"
+          optionValue="value"
+        ></p-select>
+      </label>
+
+      <label class="filters-form__field">
+        <span>Direccion</span>
+        <p-select
+          formControlName="sortDirection"
+          [options]="sortDirectionOptions"
+          optionLabel="label"
+          optionValue="value"
+        ></p-select>
+      </label>
+
+      <div class="filters-form__actions">
+        <button
+          pButton
+          type="submit"
+          icon="pi pi-filter"
+          label="Aplicar"
+          [disabled]="pendingUsers()"
+        ></button>
+
+        <button
+          pButton
+          type="button"
+          icon="pi pi-refresh"
+          label="Limpiar"
+          severity="secondary"
+          [disabled]="pendingUsers()"
+          (click)="clearFilters()"
+        ></button>
+      </div>
+    </form>
+  </p-card>
+
+  <div class="app-loading-region admin-users-content" [attr.aria-busy]="pendingInitialLoad()">
+    @if (featureError()) {
+      <p-card class="admin-users-state-card">
+        <ng-template pTemplate="title">No pudimos cargar la administracion</ng-template>
+        @if (featureError(); as featureErrorText) {
+          <p-message severity="error" [text]="featureErrorText"></p-message>
+        }
+
+        <div class="admin-users-state-card__actions">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-refresh"
+            label="Reintentar"
+            severity="secondary"
+            [disabled]="pendingInitialLoad()"
+            (click)="retryLoad()"
+          ></button>
+        </div>
+      </p-card>
+    } @else if (hasUsers()) {
+      <p-card class="admin-users-table-card">
+        <ng-template pTemplate="title">Usuarios</ng-template>
+        <ng-template pTemplate="subtitle">
+          Usa el detalle para cambiar plan y gestionar los dispositivos de cada cuenta.
+        </ng-template>
+
+        <p-table [value]="users()" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Usuario</th>
+              <th>Plan</th>
+              <th>Uso de GPS</th>
+              <th class="admin-users-table__actions">Acciones</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-user>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <strong>{{ user.fullName || 'Sin nombre visible' }}</strong>
+                  <span>{{ user.email }}</span>
+                </div>
+              </td>
+              <td>
+                <p-tag [value]="user.planCode" severity="secondary"></p-tag>
+              </td>
+              <td>
+                <p-tag
+                  [value]="user.usedGps + ' / ' + user.maxGps"
+                  [severity]="getQuotaSeverity(user.usedGps, user.maxGps)"
+                ></p-tag>
+              </td>
+              <td class="admin-users-table__actions">
+                <a
+                  pButton
+                  [routerLink]="['/admin/users', user.userId]"
+                  icon="pi pi-arrow-right"
+                  label="Ver detalle"
+                  severity="secondary"
+                ></a>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+        <p-paginator
+          [first]="(query().page - 1) * query().pageSize"
+          [rows]="query().pageSize"
+          [totalRecords]="totalItems()"
+          [rowsPerPageOptions]="[10, 20, 50, 100]"
+          (onPageChange)="changePage($event)"
+        ></p-paginator>
+
+        <div class="admin-users-table-card__footer">
+          <span>Pagina {{ query().page }} de {{ totalPages() || 1 }}</span>
+        </div>
+      </p-card>
+    } @else {
+      <p-card class="admin-users-state-card">
+        <ng-template pTemplate="title">No hay usuarios para mostrar</ng-template>
+        <ng-template pTemplate="subtitle">
+          Ajusta los filtros o intenta una busqueda menos especifica.
+        </ng-template>
+
+        <div class="admin-users-state-card__actions">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-refresh"
+            label="Limpiar filtros"
+            severity="secondary"
+            [disabled]="pendingUsers()"
+            (click)="clearFilters()"
+          ></button>
+        </div>
+      </p-card>
+    }
+
+    @if (pendingInitialLoad()) {
+      <app-loading-spinner mode="screen" size="sm" label="Cargando usuarios..." />
+    }
+  </div>
+</section>

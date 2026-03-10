@@ -6,4 +6,11 @@ export const ADMIN_USERS_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/admin-users-page.component').then((m) => m.AdminUsersPageComponent),
   },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./pages/admin-user-detail-page.component').then(
+        (m) => m.AdminUserDetailPageComponent,
+      ),
+  },
 ];

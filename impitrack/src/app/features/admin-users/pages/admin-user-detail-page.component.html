@@ -1,0 +1,287 @@
+<section class="admin-user-detail-page">
+  @if (notFound()) {
+    <p-card class="detail-state-card">
+      <ng-template pTemplate="title">Usuario no encontrado</ng-template>
+      <ng-template pTemplate="subtitle">
+        La cuenta solicitada no existe o ya no esta disponible para administracion.
+      </ng-template>
+
+      <div class="detail-state-card__actions">
+        <a pButton [routerLink]="['/admin/users']" icon="pi pi-arrow-left" label="Volver al listado"></a>
+      </div>
+    </p-card>
+  } @else {
+    <p-card class="detail-hero">
+      <ng-template pTemplate="title">Detalle de usuario</ng-template>
+      <ng-template pTemplate="subtitle">
+        Administra plan y dispositivos con contexto completo de la cuenta seleccionada.
+      </ng-template>
+
+      <div class="detail-hero__meta">
+        <article class="detail-stat">
+          <span class="detail-stat__label">Usuario</span>
+          <strong>{{ user()?.fullName || 'Sin nombre visible' }}</strong>
+          <span>{{ user()?.email || 'Sin correo' }}</span>
+        </article>
+
+        <article class="detail-stat">
+          <span class="detail-stat__label">Plan actual</span>
+          <strong>{{ user()?.planName || user()?.planCode || 'Sin plan' }}</strong>
+          <span>{{ planUsageLabel() }}</span>
+        </article>
+
+        <div class="detail-hero__actions">
+          <a
+            pButton
+            [routerLink]="['/admin/users']"
+            type="button"
+            icon="pi pi-arrow-left"
+            label="Volver"
+            severity="secondary"
+          ></a>
+          <button
+            pButton
+            type="button"
+            icon="pi pi-pencil"
+            label="Cambiar plan"
+            severity="secondary"
+            [disabled]="pendingInitialLoad()"
+            (click)="openPlanModal()"
+          ></button>
+          <button
+            pButton
+            type="button"
+            icon="pi pi-plus"
+            label="Vincular dispositivo"
+            [disabled]="pendingInitialLoad() || pendingBind()"
+            (click)="openBindModal()"
+          ></button>
+        </div>
+      </div>
+    </p-card>
+
+    <div class="app-loading-region detail-content" [attr.aria-busy]="pendingInitialLoad()">
+      @if (featureError()) {
+        <p-card class="detail-state-card">
+          <ng-template pTemplate="title">No pudimos cargar el detalle</ng-template>
+          @if (featureError(); as featureErrorText) {
+            <p-message severity="error" [text]="featureErrorText"></p-message>
+          }
+
+          <div class="detail-state-card__actions">
+            <button
+              pButton
+              type="button"
+              icon="pi pi-refresh"
+              label="Reintentar"
+              severity="secondary"
+              [disabled]="pendingInitialLoad()"
+              (click)="retryLoad()"
+            ></button>
+          </div>
+        </p-card>
+      } @else {
+        <section class="detail-grid">
+          <p-card class="summary-card">
+            <ng-template pTemplate="title">Resumen de cuenta</ng-template>
+
+            @if (user(); as currentUser) {
+              <dl class="summary-grid">
+                <div>
+                  <dt>Nombre</dt>
+                  <dd>{{ currentUser.fullName || 'No informado' }}</dd>
+                </div>
+                <div>
+                  <dt>Correo</dt>
+                  <dd>{{ currentUser.email }}</dd>
+                </div>
+                <div>
+                  <dt>Plan</dt>
+                  <dd>{{ currentUser.planName }}</dd>
+                </div>
+                <div>
+                  <dt>Codigo de plan</dt>
+                  <dd>{{ currentUser.planCode }}</dd>
+                </div>
+                <div>
+                  <dt>GPS usados</dt>
+                  <dd>{{ currentUser.usedGps }} / {{ currentUser.maxGps }}</dd>
+                </div>
+              </dl>
+            }
+          </p-card>
+
+          <p-card class="devices-card">
+            <ng-template pTemplate="title">Dispositivos del usuario</ng-template>
+            <ng-template pTemplate="subtitle">
+              Las acciones de vinculacion y desvinculacion se ejecutan dentro de esta cuenta.
+            </ng-template>
+
+            @if (hasDevices()) {
+              <p-table [value]="devices()" responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>IMEI</th>
+                    <th>Fecha de vinculacion</th>
+                    <th>Estado</th>
+                    <th class="devices-table__actions">Acciones</th>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-device>
+                  <tr>
+                    <td><span class="device-imei">{{ device.imei }}</span></td>
+                    <td>{{ device.boundAtUtc | date: 'medium' }}</td>
+                    <td><p-tag value="Vinculado" severity="info"></p-tag></td>
+                    <td class="devices-table__actions">
+                      <button
+                        pButton
+                        type="button"
+                        icon="pi pi-trash"
+                        label="Desvincular"
+                        severity="secondary"
+                        [disabled]="isUnbinding(device.imei)"
+                        (click)="confirmUnbind(device.imei)"
+                      ></button>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            } @else {
+              <div class="devices-empty-state">
+                <p>La cuenta seleccionada no tiene dispositivos vinculados.</p>
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-plus"
+                  label="Vincular primer dispositivo"
+                  [disabled]="pendingBind()"
+                  (click)="openBindModal()"
+                ></button>
+              </div>
+            }
+          </p-card>
+        </section>
+      }
+
+      @if (pendingInitialLoad()) {
+        <app-loading-spinner mode="screen" size="sm" label="Cargando detalle de usuario..." />
+      }
+    </div>
+  }
+</section>
+
+<p-dialog
+  header="Cambiar plan"
+  [visible]="changePlanModalVisible()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!pendingPlanChange()"
+  [dismissableMask]="false"
+  [style]="{ width: 'min(92vw, 30rem)' }"
+  (visibleChange)="!$event ? closePlanModal() : null"
+>
+  <form class="modal-form" [formGroup]="planForm" (ngSubmit)="submitPlanChange()">
+    <label class="modal-form__field">
+      <span>Plan</span>
+      <p-select
+        formControlName="planCode"
+        [options]="plans()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecciona un plan"
+        [appendTo]="'body'"
+        scrollHeight="16rem"
+        [focusOnHover]="false"
+        [autoOptionFocus]="false"
+      ></p-select>
+    </label>
+
+    @if (planErrorMessage(); as planErrorText) {
+      <p-message severity="error" [text]="planErrorText"></p-message>
+    }
+
+    <div class="modal-form__actions">
+      <button
+        pButton
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        [disabled]="pendingPlanChange()"
+        (click)="closePlanModal()"
+      ></button>
+      <button
+        pButton
+        type="submit"
+        icon="pi pi-check"
+        label="Guardar plan"
+        [disabled]="planForm.invalid || pendingPlanChange()"
+      ></button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
+  header="Vincular dispositivo"
+  [visible]="bindDeviceModalVisible()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!pendingBind()"
+  [dismissableMask]="!pendingBind()"
+  [style]="{ width: 'min(92vw, 30rem)' }"
+  (visibleChange)="!$event ? closeBindModal() : null"
+>
+  <form class="modal-form" [formGroup]="bindForm" (ngSubmit)="submitBind()">
+    <label class="modal-form__field">
+      <span>IMEI</span>
+      <input
+        pInputText
+        type="text"
+        formControlName="imei"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="Ej. 359339080123456"
+      />
+    </label>
+
+    @if (bindForm.controls.imei.invalid && (bindForm.controls.imei.dirty || bindForm.controls.imei.touched)) {
+      <p-message severity="error" text="Ingresa un IMEI valido entre 8 y 32 caracteres."></p-message>
+    }
+
+    @if (bindErrorMessage(); as bindErrorText) {
+      <p-message severity="error" [text]="bindErrorText"></p-message>
+    }
+
+    <div class="modal-form__actions">
+      <button
+        pButton
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        [disabled]="pendingBind()"
+        (click)="closeBindModal()"
+      ></button>
+      <button
+        pButton
+        type="submit"
+        icon="pi pi-check"
+        label="Vincular"
+        [disabled]="bindForm.invalid || pendingBind()"
+      ></button>
+    </div>
+  </form>
+</p-dialog>
+
+@if (pendingPlanChange()) {
+  <app-loading-spinner mode="screen" size="sm" label="Actualizando plan..." />
+}
+
+@if (pendingBind()) {
+  <app-loading-spinner mode="screen" size="sm" label="Vinculando dispositivo..." />
+}
+
+@if (pendingUnbindImei()) {
+  <app-loading-spinner mode="screen" size="sm" label="Desvinculando dispositivo..." />
+}
