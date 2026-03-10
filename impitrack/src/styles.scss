@@ -13,6 +13,11 @@
   --route-cyan: #77c9de;
   --signal-red: #f17d78;
   --panel-fill: rgba(9, 18, 24, 0.76);
+  --surface-soft: rgba(8, 18, 24, 0.92);
+  --line-soft: rgba(122, 214, 196, 0.14);
+  --surface-overlay: rgba(4, 11, 16, 0.74);
+  --surface-screen-overlay: rgba(4, 11, 16, 0.78);
+  --spinner-shell-fill: rgba(6, 16, 22, 0.88);
   --panel-shadow: none;
   --radius-panel: 1.35rem;
   --radius-control: 0.95rem;
@@ -25,7 +30,7 @@
 
 html {
   min-height: 100%;
-  background: #050c12;
+  background: var(--grid-ink);
 }
 
 body {
@@ -98,8 +103,8 @@ pre {
 .p-inputtext,
 .p-password-input {
   width: 100%;
-  background: rgba(8, 18, 24, 0.92);
-  border-color: rgba(122, 214, 196, 0.14);
+  background: var(--surface-soft);
+  border-color: var(--line-soft);
   color: var(--ink-strong);
 }
 
@@ -113,8 +118,8 @@ pre {
 }
 
 .p-button.p-button-secondary {
-  background: rgba(10, 22, 29, 0.88);
-  border-color: rgba(122, 214, 196, 0.16);
+  background: color-mix(in srgb, var(--surface-soft) 94%, transparent);
+  border-color: color-mix(in srgb, var(--beacon-green) 18%, transparent);
 }
 
 .p-toast {

@@ -1,0 +1,74 @@
+<section class="ops-detail-page">
+  @if (notFound()) {
+    <p-card>
+      <ng-template pTemplate="title">Paquete no encontrado</ng-template>
+      <ng-template pTemplate="subtitle">
+        El identificador solicitado no existe o ya no esta disponible para diagnostico.
+      </ng-template>
+
+      <a pButton [routerLink]="['/ops/raw']" icon="pi pi-arrow-left" label="Volver al listado"></a>
+    </p-card>
+  } @else if (errorMessage()) {
+    <p-card>
+      <ng-template pTemplate="title">No pudimos cargar el detalle raw</ng-template>
+      <p-message severity="error" [text]="errorMessage() ?? ''"></p-message>
+    </p-card>
+  } @else if (packet(); as currentPacket) {
+    <p-card>
+      <ng-template pTemplate="title">Detalle de paquete raw</ng-template>
+      <ng-template pTemplate="subtitle">
+        Evidencia tecnica completa para diagnostico del pipeline y correlacion por sesion.
+      </ng-template>
+
+      <div class="ops-detail-actions">
+        <a
+          pButton
+          [routerLink]="['/ops/raw']"
+          icon="pi pi-arrow-left"
+          label="Volver"
+          severity="secondary"
+        ></a>
+        <p-tag [value]="getParseLabel(currentPacket.parseStatus)" [severity]="getParseSeverity()"></p-tag>
+      </div>
+
+      <section class="ops-detail-grid">
+        <article class="ops-detail-card">
+          <h3>Correlacion</h3>
+          <dl>
+            <div><dt>Identificador de paquete</dt><dd>{{ currentPacket.packetId }}</dd></div>
+            <div><dt>Identificador de sesion</dt><dd>{{ currentPacket.sessionId }}</dd></div>
+            <div><dt>Recibido</dt><dd>{{ currentPacket.receivedAtUtc | date: 'medium' }}</dd></div>
+            <div><dt>Puerto</dt><dd>{{ currentPacket.port }}</dd></div>
+            <div><dt>IP remota</dt><dd>{{ currentPacket.remoteIp }}</dd></div>
+          </dl>
+        </article>
+
+        <article class="ops-detail-card">
+          <h3>Parseo y ACK</h3>
+          <dl>
+            <div><dt>IMEI</dt><dd>{{ currentPacket.imei || 'No disponible' }}</dd></div>
+            <div><dt>Protocolo</dt><dd>{{ toText(currentPacket.protocol) }}</dd></div>
+            <div><dt>Tipo</dt><dd>{{ toText(currentPacket.messageType) }}</dd></div>
+            <div><dt>Error parseo</dt><dd>{{ currentPacket.parseError || 'Sin error' }}</dd></div>
+            <div><dt>ACK</dt><dd>{{ currentPacket.ackSent ? 'Enviado' : 'No enviado' }}</dd></div>
+            <div><dt>Payload ACK</dt><dd>{{ currentPacket.ackPayload || 'No disponible' }}</dd></div>
+            <div>
+              <dt>ACK en</dt>
+              <dd>{{ currentPacket.ackAtUtc ? (currentPacket.ackAtUtc | date: 'medium') : 'No disponible' }}</dd>
+            </div>
+            <div><dt>Latencia ACK</dt><dd>{{ currentPacket.ackLatencyMs ?? 'No disponible' }}</dd></div>
+          </dl>
+        </article>
+      </section>
+
+      <section class="ops-detail-payload">
+        <h3>Payload crudo</h3>
+        <pre>{{ currentPacket.payloadText }}</pre>
+      </section>
+    </p-card>
+  }
+
+  @if (pending()) {
+    <app-loading-spinner mode="screen" size="sm" label="Cargando detalle raw..." />
+  }
+</section>

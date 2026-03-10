@@ -76,17 +76,12 @@ export const routes: Routes = [
     component: AppShellComponent,
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['Admin', 'Ops'],
+      roles: ['Admin'],
     },
     children: [
       {
-        path: 'raw',
-        loadChildren: () => import('./features/ops/ops.routes').then((m) => m.OPS_ROUTES),
-      },
-      {
         path: '',
-        pathMatch: 'full',
-        redirectTo: 'raw',
+        loadChildren: () => import('./features/ops/ops.routes').then((m) => m.OPS_ROUTES),
       },
     ],
   },

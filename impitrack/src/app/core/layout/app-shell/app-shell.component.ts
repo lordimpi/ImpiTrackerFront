@@ -26,7 +26,7 @@ export class AppShellComponent {
     { label: 'Cuenta', route: '/app/account', icon: 'pi pi-user' },
     { label: 'Mis dispositivos', route: '/app/devices', icon: 'pi pi-truck' },
     { label: 'Administración', route: '/admin/users', icon: 'pi pi-shield', roles: ['Admin'] },
-    { label: 'Operaciones', route: '/ops/raw', icon: 'pi pi-bolt', roles: ['Admin', 'Ops'] },
+    { label: 'Operaciones', route: '/ops/raw', icon: 'pi pi-bolt', roles: ['Admin'] },
   ];
 
   protected readonly displayName = this.authFacade.displayName;

@@ -7,6 +7,7 @@ import { AuthApiService } from '../data-access/auth-api.service';
 import { MeApiService } from '../data-access/me-api.service';
 import { AuthLoginRequest, AuthLoginResponse } from '../models/auth-login.model';
 import { AuthSession } from '../models/auth-session.model';
+import { AuthStorageMode } from '../models/auth-storage-mode.model';
 import { CurrentUserDto } from '../models/current-user.model';
 import {
   ForgotPasswordRequest,
@@ -21,6 +22,7 @@ import { readJwtClaims, readJwtRoles } from '../utils/jwt-claims.util';
 interface AuthState {
   readonly session: AuthSession | null;
   readonly user: CurrentUserDto | null;
+  readonly storageMode: AuthStorageMode;
   readonly initializing: boolean;
 }
 
@@ -36,8 +38,9 @@ export class AuthFacade {
 
   private readonly persistedState = this.storage.read();
   private readonly state = signal<AuthState>({
-    session: this.persistedState?.session ?? null,
-    user: this.persistedState?.user ?? null,
+    session: this.persistedState?.state.session ?? null,
+    user: this.persistedState?.state.user ?? null,
+    storageMode: this.persistedState?.mode ?? 'session',
     initializing: true,
   });
 
@@ -91,10 +94,10 @@ export class AuthFacade {
     }
   }
 
-  async login(payload: AuthLoginRequest): Promise<void> {
+  async login(payload: AuthLoginRequest, rememberSession = false): Promise<void> {
     try {
       const response = await firstValueFrom(this.authApi.login(payload));
-      this.persistSession(unwrapApiResponse(response));
+      this.persistSession(unwrapApiResponse(response), this.user(), rememberSession ? 'local' : 'session');
       await this.loadCurrentUser();
     } catch (error) {
       this.clearState();
@@ -184,7 +187,7 @@ export class AuthFacade {
     try {
       const response = await firstValueFrom(this.authApi.refresh({ refreshToken }));
       const authResponse = unwrapApiResponse(response);
-      this.persistSession(authResponse, this.user());
+      this.persistSession(authResponse, this.user(), this.state().storageMode);
       return this.session();
     } catch (error) {
       const apiError = normalizeApiError(error);
@@ -209,7 +212,11 @@ export class AuthFacade {
     this.persistCurrentSnapshot();
   }
 
-  private persistSession(authResponse: AuthLoginResponse, currentUser?: CurrentUserDto | null): void {
+  private persistSession(
+    authResponse: AuthLoginResponse,
+    currentUser: CurrentUserDto | null = null,
+    storageMode: AuthStorageMode = this.state().storageMode,
+  ): void {
     const session: AuthSession = {
       accessToken: authResponse.accessToken,
       refreshToken: authResponse.refreshToken,
@@ -220,6 +227,7 @@ export class AuthFacade {
     this.patchState({
       session,
       user: currentUser ?? this.user(),
+      storageMode,
     });
 
     this.persistCurrentSnapshot();
@@ -236,13 +244,14 @@ export class AuthFacade {
     this.storage.write({
       session,
       user: this.user(),
-    });
+    }, this.state().storageMode);
   }
 
   private clearState(): void {
     this.state.set({
       session: null,
       user: null,
+      storageMode: 'session',
       initializing: false,
     });
     this.storage.clear();

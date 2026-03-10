@@ -1,9 +1,9 @@
 <div class="app-shell">
-  <aside class="rail" aria-label="Navegación principal">
+  <aside class="rail" aria-label="Navegacion principal">
     <div class="rail__brand">
       <span class="rail__eyebrow">shell operativo</span>
       <strong>IMPITrack</strong>
-      <p>Vistas de telemetría listas para crecer por feature, no por parches.</p>
+      <p>Vistas de telemetria listas para crecer por feature, no por parches.</p>
     </div>
 
     <nav class="rail__nav">
@@ -32,18 +32,20 @@
   <div class="canvas">
     <header class="canvas__header">
       <div>
-        <span class="canvas__eyebrow">sesión</span>
+        <span class="canvas__eyebrow">sesion</span>
         <h2>{{ displayName() }}</h2>
       </div>
 
-      <button
-        pButton
-        type="button"
-        severity="secondary"
-        icon="pi pi-sign-out"
-        label="Cerrar sesión"
-        (click)="signOut()"
-      ></button>
+      <div class="canvas__actions">
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          icon="pi pi-sign-out"
+          label="Cerrar sesion"
+          (click)="signOut()"
+        ></button>
+      </div>
     </header>
 
     <main class="canvas__content">

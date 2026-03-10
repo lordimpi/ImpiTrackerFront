@@ -1,0 +1,104 @@
+<section class="ops-page">
+  <p-card>
+    <ng-template pTemplate="title">Errores frecuentes</ng-template>
+    <ng-template pTemplate="subtitle">
+      Agrupa los fallos mas repetidos del parseo por error, protocolo o puerto.
+    </ng-template>
+
+    <form class="ops-filters ops-filters--errors" [formGroup]="form" (ngSubmit)="submitFilters()">
+      <label class="ops-filters__field">
+        <span>Desde</span>
+        <input class="p-inputtext" type="datetime-local" formControlName="from" />
+      </label>
+
+      <label class="ops-filters__field">
+        <span>Hasta</span>
+        <input class="p-inputtext" type="datetime-local" formControlName="to" />
+      </label>
+
+      <label class="ops-filters__field">
+        <span>Agrupar por</span>
+        <p-select
+          formControlName="groupBy"
+          [options]="groupOptions"
+          optionLabel="label"
+          optionValue="value"
+        ></p-select>
+      </label>
+
+      <label class="ops-filters__field">
+        <span>Limite</span>
+        <p-select
+          formControlName="limit"
+          [options]="limitOptions"
+          optionLabel="label"
+          optionValue="value"
+        ></p-select>
+      </label>
+
+      <div class="ops-filters__actions">
+        <button pButton type="submit" icon="pi pi-filter" label="Aplicar"></button>
+        <button
+          pButton
+          type="button"
+          icon="pi pi-history"
+          label="Ultima hora"
+          severity="secondary"
+          (click)="resetWindow()"
+        ></button>
+      </div>
+    </form>
+
+    <div class="ops-page__meta">
+      <span class="ops-page__summary">{{ summary() }}</span>
+    </div>
+  </p-card>
+
+  <div class="app-loading-region ops-page__content" [attr.aria-busy]="pendingInitialLoad()">
+    @if (featureError()) {
+      <p-card>
+        <ng-template pTemplate="title">No pudimos cargar los errores</ng-template>
+        <p-message severity="error" [text]="featureError() ?? ''"></p-message>
+      </p-card>
+    } @else if (hasGroups()) {
+      <p-card>
+        <ng-template pTemplate="title">Top de errores</ng-template>
+
+        <p-table [value]="groups()" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Grupo</th>
+              <th>Cantidad</th>
+              <th>Ultimo paquete</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-group>
+            <tr>
+              <td>{{ group.groupKey }}</td>
+              <td>{{ group.count }}</td>
+              <td>
+                @if (group.lastPacketId) {
+                  <a [routerLink]="['/ops/raw', group.lastPacketId]">{{ group.lastPacketId }}</a>
+                } @else {
+                  <span>No disponible</span>
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    } @else {
+      <p-card>
+        <ng-template pTemplate="title">Sin errores en la ventana consultada</ng-template>
+        <ng-template pTemplate="subtitle">
+          No hay agregados para el rango y criterio de agrupacion seleccionado.
+        </ng-template>
+      </p-card>
+    }
+
+    @if (pendingInitialLoad()) {
+      <app-loading-spinner mode="screen" size="sm" label="Cargando errores..." />
+    }
+  </div>
+</section>
