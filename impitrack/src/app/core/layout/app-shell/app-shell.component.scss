@@ -5,8 +5,7 @@
 
 .app-shell {
   min-height: 100dvh;
-  display: grid;
-  grid-template-columns: 18rem minmax(0, 1fr);
+  display: flex;
   background:
     linear-gradient(
       180deg,
@@ -16,7 +15,21 @@
     var(--station-floor);
 }
 
+.app-shell__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  border: 0;
+  background: rgba(2, 9, 15, 0.62);
+}
+
 .rail {
+  position: sticky;
+  top: 0;
+  z-index: 26;
+  width: 18rem;
+  flex: 0 0 18rem;
+  min-height: 100dvh;
   padding: 1.5rem 1rem;
   border-right: 1px solid var(--line-subtle);
   background: color-mix(in srgb, var(--surface-soft) 78%, transparent);
@@ -24,6 +37,20 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  overflow: hidden;
+  transition:
+    width 0.22s ease,
+    flex-basis 0.22s ease,
+    padding 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease;
+}
+
+.app-shell:not(.app-shell--sidebar-open) .rail:not(.rail--mobile) {
+  width: 0;
+  flex-basis: 0;
+  padding-inline: 0;
+  border-color: transparent;
 }
 
 .rail__brand,
@@ -99,6 +126,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .canvas__header {
@@ -115,6 +143,22 @@
   }
 }
 
+.canvas__heading {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.canvas__menu-toggle {
+  flex: 0 0 auto;
+}
+
+.canvas__display-name {
+  color: var(--ink-strong);
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
 .canvas__actions {
   display: flex;
   gap: 0.75rem;
@@ -128,17 +172,23 @@
 }
 
 @media (max-width: 980px) {
-  .app-shell {
-    grid-template-columns: 1fr;
+  .rail {
+    position: fixed;
+    inset: 0 auto 0 0;
+    transform: translateX(-102%);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
   }
 
-  .rail {
-    border-right: 0;
-    border-bottom: 1px solid var(--line-subtle);
+  .rail.rail--open {
+    transform: translateX(0);
   }
 
   .canvas__header {
     flex-direction: column;
+  }
+
+  .canvas__heading {
+    width: 100%;
   }
 
   .canvas__actions {

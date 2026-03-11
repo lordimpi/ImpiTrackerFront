@@ -83,6 +83,14 @@
                 <p-tag value="Vinculado" severity="info"></p-tag>
               </td>
               <td class="devices-table__actions">
+                <a
+                  pButton
+                  type="button"
+                  icon="pi pi-map"
+                  label="Telemetria"
+                  severity="secondary"
+                  [routerLink]="['/app/devices', device.imei, 'telemetry']"
+                ></a>
                 <button
                   pButton
                   type="button"

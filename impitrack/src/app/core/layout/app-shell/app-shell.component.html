@@ -1,5 +1,19 @@
-<div class="app-shell">
-  <aside class="rail" aria-label="Navegacion principal">
+<div class="app-shell" [class.app-shell--sidebar-open]="sidebarOpen()">
+  @if (showBackdrop()) {
+    <button
+      type="button"
+      class="app-shell__backdrop"
+      aria-label="Cerrar navegacion"
+      (click)="closeSidebar()"
+    ></button>
+  }
+
+  <aside
+    class="rail"
+    aria-label="Navegacion principal"
+    [class.rail--open]="sidebarOpen()"
+    [class.rail--mobile]="mobileViewport()"
+  >
     <div class="rail__brand">
       <span class="rail__eyebrow">shell operativo</span>
       <strong>IMPITrack</strong>
@@ -12,6 +26,7 @@
           [routerLink]="item.route"
           routerLinkActive="rail__link--active"
           class="rail__link"
+          (click)="closeSidebar()"
         >
           <i [class]="item.icon"></i>
           <span>{{ item.label }}</span>
@@ -31,18 +46,26 @@
 
   <div class="canvas">
     <header class="canvas__header">
-      <div>
-        <span class="canvas__eyebrow">sesion</span>
-        <h2>{{ displayName() }}</h2>
+      <div class="canvas__heading">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-bars"
+          severity="secondary"
+          class="canvas__menu-toggle"
+          aria-label="Alternar menu lateral"
+          (click)="toggleSidebar()"
+        ></button>
       </div>
 
       <div class="canvas__actions">
+        <strong class="canvas__display-name">{{ displayName() }}</strong>
         <button
           pButton
           type="button"
           severity="secondary"
           icon="pi pi-sign-out"
-          label="Cerrar sesion"
+          aria-label="Cerrar sesion"
           (click)="signOut()"
         ></button>
       </div>

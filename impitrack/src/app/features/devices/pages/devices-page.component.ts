@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -26,6 +27,7 @@ import { BindDeviceOutcome, DevicesFacade } from '../application/devices.facade'
     LoadingSpinnerComponent,
     Message,
     ReactiveFormsModule,
+    RouterLink,
     TableModule,
     Tag,
   ],

@@ -1,0 +1,17 @@
+.telemetry-event-code,
+.telemetry-event-payload,
+code {
+  color: var(--ink-strong);
+  font-family: var(--font-mono);
+}
+
+.telemetry-event-payload-cell {
+  min-width: 20rem;
+}
+
+.telemetry-event-payload {
+  display: inline-block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--ink-weak);
+}

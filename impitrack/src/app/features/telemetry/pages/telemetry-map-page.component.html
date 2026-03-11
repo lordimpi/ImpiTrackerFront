@@ -1,0 +1,102 @@
+<section class="telemetry-map-page">
+  <p-card class="telemetry-map-page__hero">
+    <ng-template pTemplate="title">Mapa</ng-template>
+    <ng-template pTemplate="subtitle">
+      Visualiza la ultima posicion conocida de tus GPS y entra rapido al detalle de telemetria.
+    </ng-template>
+
+    <div class="telemetry-map-page__hero-actions">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-refresh"
+        label="Actualizar"
+        severity="secondary"
+        [disabled]="pendingInitialLoad() || refreshing()"
+        (click)="refresh()"
+      ></button>
+    </div>
+  </p-card>
+
+  <div class="app-loading-region telemetry-map-page__content" [attr.aria-busy]="pendingInitialLoad()">
+    @if (featureError()) {
+      <p-card class="telemetry-map-page__state-card">
+        <ng-template pTemplate="title">No pudimos cargar el mapa</ng-template>
+        @if (featureError(); as featureErrorText) {
+          <p-message severity="error" [text]="featureErrorText"></p-message>
+        }
+
+        <div class="telemetry-map-page__state-actions">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-refresh"
+            label="Reintentar"
+            severity="secondary"
+            [disabled]="pendingInitialLoad()"
+            (click)="retryLoad()"
+          ></button>
+        </div>
+      </p-card>
+    } @else {
+      <section class="telemetry-map-page__grid">
+        <p-card class="telemetry-map-page__devices-card">
+          <ng-template pTemplate="title">Dispositivos monitoreados</ng-template>
+          <ng-template pTemplate="subtitle">
+            Selecciona un IMEI para abrir su historial y eventos recientes.
+          </ng-template>
+
+          @if (hasDevices()) {
+            <app-telemetry-device-list
+              [devices]="devices()"
+              (openTelemetry)="openDeviceTelemetry($event)"
+            />
+          } @else {
+            <div class="telemetry-map-page__empty-devices">
+              <p>
+                Todavia no tienes dispositivos para monitorear. Vincula al menos un GPS para empezar
+                a ver posiciones y eventos.
+              </p>
+
+              <button
+                pButton
+                type="button"
+                icon="pi pi-truck"
+                label="Ir a Mis dispositivos"
+                (click)="goToDevices()"
+              ></button>
+            </div>
+          }
+        </p-card>
+
+        <p-card class="telemetry-map-page__map-card">
+          <ng-template pTemplate="title">Ultima posicion conocida</ng-template>
+          <ng-template pTemplate="subtitle">
+            Solo se muestran marcadores para dispositivos con posicion disponible.
+          </ng-template>
+
+          @if (!hasMappableDevices()) {
+            <div class="telemetry-map-page__map-message">
+              <p-message
+                severity="info"
+                [text]="hasDevices()
+                  ? 'Todavia no hay posiciones registradas para tus dispositivos vinculados.'
+                  : 'El mapa se centra en Colombia mientras todavia no tengas dispositivos o posiciones.'"
+              ></p-message>
+            </div>
+          }
+
+          <app-telemetry-map
+            [markers]="markers()"
+            [pathPoints]="[]"
+            [emptyLabel]="'Todavia no hay posiciones conocidas para ubicar en el mapa.'"
+          />
+        </p-card>
+      </section>
+    }
+
+    @if (pendingInitialLoad()) {
+      <app-loading-spinner mode="screen" size="sm" label="Cargando mapa..." />
+    }
+  </div>
+</section>

@@ -1,0 +1,37 @@
+<div class="telemetry-device-list">
+  @for (device of devices(); track device.imei) {
+    <article class="telemetry-device-card">
+      <div class="telemetry-device-card__head">
+        <strong>{{ device.imei }}</strong>
+        <p-tag
+          [severity]="device.lastPosition ? 'success' : 'secondary'"
+          [value]="device.lastPosition ? 'Con posicion' : 'Sin posicion'"
+        ></p-tag>
+      </div>
+
+      <dl class="telemetry-device-card__meta">
+        <div>
+          <dt>Ultimo visto</dt>
+          <dd>{{ device.lastSeenAtUtc ? (device.lastSeenAtUtc | date: 'medium') : 'Sin dato' }}</dd>
+        </div>
+        <div>
+          <dt>Protocolo</dt>
+          <dd>{{ normalizeText(device.protocol) }}</dd>
+        </div>
+        <div>
+          <dt>Ultimo mensaje</dt>
+          <dd>{{ normalizeText(device.lastMessageType) }}</dd>
+        </div>
+      </dl>
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-arrow-right"
+        label="Ver telemetria"
+        severity="secondary"
+        (click)="viewTelemetry(device.imei)"
+      ></button>
+    </article>
+  }
+</div>

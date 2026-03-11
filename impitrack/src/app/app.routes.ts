@@ -45,6 +45,13 @@ export const routes: Routes = [
           import('./features/account/account.routes').then((m) => m.ACCOUNT_ROUTES),
       },
       {
+        path: 'map',
+        loadComponent: () =>
+          import('./features/telemetry/pages/telemetry-map-page.component').then(
+            (m) => m.TelemetryMapPageComponent,
+          ),
+      },
+      {
         path: 'devices',
         loadChildren: () =>
           import('./features/devices/devices.routes').then((m) => m.DEVICES_ROUTES),

@@ -64,7 +64,15 @@
 
 .devices-table__actions {
   width: 1%;
+  min-width: 18rem;
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
   white-space: nowrap;
+}
+
+.devices-table__actions :is(.p-button, .p-button-label) {
+  text-decoration: none;
 }
 
 .devices-empty-state {
@@ -114,5 +122,8 @@
   .devices-table__actions {
     width: auto;
     white-space: normal;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
   }
 }

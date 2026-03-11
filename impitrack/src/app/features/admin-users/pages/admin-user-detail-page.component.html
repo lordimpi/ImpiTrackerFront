@@ -134,6 +134,14 @@
                     <td>{{ device.boundAtUtc | date: 'medium' }}</td>
                     <td><p-tag value="Vinculado" severity="info"></p-tag></td>
                     <td class="devices-table__actions">
+                      <a
+                        pButton
+                        [routerLink]="['/admin/users', user()?.userId, 'devices', device.imei, 'telemetry']"
+                        type="button"
+                        icon="pi pi-map"
+                        label="Telemetria"
+                        severity="secondary"
+                      ></a>
                       <button
                         pButton
                         type="button"
