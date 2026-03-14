@@ -32,6 +32,7 @@ EMQX es necesario porque el `TcpServer` de desarrollo esta configurado con:
 - IMEI de ejemplo: `359586015829802`
 - Script: [.docs/gps-simulacion-popayan.ps1](/C:/Users/snt-2/OneDrive/Escritorio/GPS/ImpiTrackerFront/impitrack/.docs/gps-simulacion-popayan.ps1)
 - Script para recorridos: [.docs/gps-recorridos-popayan.ps1](/C:/Users/snt-2/OneDrive/Escritorio/GPS/ImpiTrackerFront/impitrack/.docs/gps-recorridos-popayan.ps1)
+- Script para recorrido desde KMZ: [.docs/gps-recorrido-kmz.ps1](/C:/Users/snt-2/OneDrive/Escritorio/GPS/ImpiTrackerFront/impitrack/.docs/gps-recorrido-kmz.ps1)
 
 Puedes cambiar el IMEI en el script si necesitas usar otro.
 
@@ -39,6 +40,7 @@ Usa cada script asi:
 
 - `gps-simulacion-popayan.ps1`: validar ultima ubicacion y puntos historicos
 - `gps-recorridos-popayan.ps1`: validar la vista `Recorridos`
+- `gps-recorrido-kmz.ps1`: validar un solo recorrido realista a partir de un archivo `.kmz`
 
 ## Flujo E2E completo
 
@@ -95,13 +97,16 @@ El script:
 El primer tracker que imprime el script debe verse con este patron:
 
 ```text
-imei:359586015829802,tracker,110326001219,,F,175816.000,A,0226.6880,N,07636.8820,W,,;
+imei:359586015829802,tracker,260311001219,,F,175816.000,A,0226.6880,N,07636.8820,W,,;
 ```
 
 Fijate en esto:
 
+- `260311001219`
 - `0226.6880`
 - `07636.8820`
+
+El timestamp Coban debe ir en formato `yyMMddHHmmss`.
 
 Las coordenadas deben llevar `.` decimal, no `,`.
 
@@ -163,9 +168,10 @@ powershell -ExecutionPolicy Bypass -File .\.docs\gps-recorridos-popayan.ps1
 
 Ese script:
 
-1. envia dos bloques de puntos separados por un gap de mas de 10 minutos
+1. envia cuatro bloques de puntos separados por gaps de mas de 10 minutos
 2. usa saltos geograficos suficientemente grandes para que backend los considere movimiento real
-3. debe terminar mostrando al menos 2 recorridos en `/app/devices/:imei/telemetry`
+3. sigue cuatro corredores urbanos aproximados dentro de Popayan para evitar recorridos artificiales
+4. debe terminar mostrando varios recorridos en `/app/devices/:imei/telemetry`
 
 Si despues de ejecutarlo no aparecen recorridos, valida en este orden:
 
@@ -192,6 +198,7 @@ Revisa:
 3. que el frontend este consultando la misma base donde persiste el `TcpServer`
 4. pulsa `Actualizar` en `/app/map` o espera el polling de 30 segundos
 5. revisa que el primer tracker impreso por el script tenga `.` decimal en latitud y longitud
+6. revisa que el tracker tenga fecha en formato `yyMMddHHmmss`; por ejemplo `260311001219`, no `110326001219`
 
 ### Sale en Ops pero no en telemetria
 
@@ -202,6 +209,7 @@ Revisa:
 3. que la posicion haya sido persistida y no solo el raw packet
 4. que estes entrando con el mismo usuario al que vinculaste el IMEI
 5. si en UI solo aparecen eventos `Login`, el tracking no esta generando posicion util
+6. si `positions` o `trips` salen vacios, valida primero que el payload tracker tenga fecha `yyMMddHHmmss`
 
 ### El TcpServer arranca pero no persiste bien
 
@@ -232,3 +240,24 @@ $imei = '359586015829802'
 ```
 
 Y recuerda volver a vincular ese nuevo IMEI en `Mis dispositivos` antes de ejecutar la simulacion.
+
+## Probar un recorrido real desde KMZ
+
+Si quieres usar una ruta mas realista, ejecuta:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\.docs\gps-recorrido-kmz.ps1
+```
+
+Ese script:
+
+1. lee el archivo `C:\Users\snt-2\Downloads\ruta1.kmz`
+2. extrae la geometria principal del `doc.kml`
+3. conserva solo puntos separados por una distancia util para Coban
+4. envia un solo recorrido para validarlo en el panel `Recorridos`
+
+Si luego quieres usar otro archivo KMZ, cambia esta variable:
+
+```powershell
+$kmzPath = 'C:\Users\snt-2\Downloads\ruta1.kmz'
+```

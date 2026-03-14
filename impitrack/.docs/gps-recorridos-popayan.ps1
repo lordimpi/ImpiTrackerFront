@@ -111,7 +111,7 @@ function New-CobanTrackerPayload {
 
     $lat = Convert-ToCobanCoordinate -Decimal $Latitude -PositiveHemisphere 'N' -NegativeHemisphere 'S' -DegreeDigits 2
     $lon = Convert-ToCobanCoordinate -Decimal $Longitude -PositiveHemisphere 'E' -NegativeHemisphere 'W' -DegreeDigits 3
-    $datePart = $UtcTime.ToString('ddMMyyHHmmss')
+    $datePart = $UtcTime.ToString('yyMMddHHmmss')
 
     return "imei:$DeviceImei,tracker,$datePart,,F,175816.000,A,$($lat.Value),$($lat.Hemisphere),$($lon.Value),$($lon.Hemisphere),,;"
 }
@@ -144,19 +144,43 @@ function Send-Trip {
 }
 
 $tripOneRoute = @(
-    @{ Lat = 2.4448; Lon = -76.6147 }
-    @{ Lat = 2.4462; Lon = -76.6131 }
-    @{ Lat = 2.4478; Lon = -76.6114 }
-    @{ Lat = 2.4493; Lon = -76.6098 }
-    @{ Lat = 2.4509; Lon = -76.6082 }
+    @{ Lat = 2.4418; Lon = -76.6149 }
+    @{ Lat = 2.4426; Lon = -76.6141 }
+    @{ Lat = 2.4434; Lon = -76.6133 }
+    @{ Lat = 2.4442; Lon = -76.6125 }
+    @{ Lat = 2.4450; Lon = -76.6118 }
+    @{ Lat = 2.4459; Lon = -76.6110 }
+    @{ Lat = 2.4468; Lon = -76.6102 }
 )
 
 $tripTwoRoute = @(
-    @{ Lat = 2.4511; Lon = -76.6081 }
-    @{ Lat = 2.4528; Lon = -76.6074 }
-    @{ Lat = 2.4545; Lon = -76.6069 }
-    @{ Lat = 2.4560; Lon = -76.6076 }
-    @{ Lat = 2.4573; Lon = -76.6091 }
+    @{ Lat = 2.4469; Lon = -76.6101 }
+    @{ Lat = 2.4478; Lon = -76.6093 }
+    @{ Lat = 2.4488; Lon = -76.6086 }
+    @{ Lat = 2.4499; Lon = -76.6079 }
+    @{ Lat = 2.4510; Lon = -76.6072 }
+    @{ Lat = 2.4522; Lon = -76.6065 }
+    @{ Lat = 2.4533; Lon = -76.6058 }
+)
+
+$tripThreeRoute = @(
+    @{ Lat = 2.4529; Lon = -76.6057 }
+    @{ Lat = 2.4524; Lon = -76.6048 }
+    @{ Lat = 2.4519; Lon = -76.6039 }
+    @{ Lat = 2.4511; Lon = -76.6033 }
+    @{ Lat = 2.4500; Lon = -76.6030 }
+    @{ Lat = 2.4489; Lon = -76.6032 }
+    @{ Lat = 2.4479; Lon = -76.6037 }
+)
+
+$tripFourRoute = @(
+    @{ Lat = 2.4478; Lon = -76.6038 }
+    @{ Lat = 2.4472; Lon = -76.6047 }
+    @{ Lat = 2.4466; Lon = -76.6057 }
+    @{ Lat = 2.4459; Lon = -76.6067 }
+    @{ Lat = 2.4451; Lon = -76.6078 }
+    @{ Lat = 2.4443; Lon = -76.6089 }
+    @{ Lat = 2.4435; Lon = -76.6100 }
 )
 
 try {
@@ -164,18 +188,25 @@ try {
     Send-Payload -StreamWriter $writer -NetworkStream $stream -AckBuffer $buffer -Payload "##,imei:$imei,A;"
 
     $nowUtc = [datetime]::UtcNow
-    $tripTwoStart = $nowUtc.AddMinutes(-6)
+    $tripFourStart = $nowUtc.AddMinutes(-6)
+    $tripThreeStart = $tripFourStart.AddMinutes(-($gapMinutesBetweenTrips + $tripThreeRoute.Count))
+    $tripTwoStart = $tripThreeStart.AddMinutes(-($gapMinutesBetweenTrips + $tripTwoRoute.Count))
     $tripOneStart = $tripTwoStart.AddMinutes(-($gapMinutesBetweenTrips + $tripOneRoute.Count))
 
     Write-Host ''
     Write-Host 'Regla actual del backend para recorridos: gap mayor a 10 minutos crea un nuevo recorrido.'
     Write-Host 'Ademas, el backend solo arma recorridos cuando detecta movimiento real entre puntos.'
+    Write-Host 'Esta version usa cuatro corredores urbanos aproximados en Popayan: centro, salida norte, tramo oriental y retorno urbano.'
     Write-Host "Gap configurado en este script: $gapMinutesBetweenTrips minutos."
     Write-Host "Inicio Recorrido 1 (UTC): $($tripOneStart.ToString('O'))"
     Write-Host "Inicio Recorrido 2 (UTC): $($tripTwoStart.ToString('O'))"
+    Write-Host "Inicio Recorrido 3 (UTC): $($tripThreeStart.ToString('O'))"
+    Write-Host "Inicio Recorrido 4 (UTC): $($tripFourStart.ToString('O'))"
 
     Send-Trip -TripName 'Recorrido 1' -StartUtc $tripOneStart -RoutePoints $tripOneRoute
     Send-Trip -TripName 'Recorrido 2' -StartUtc $tripTwoStart -RoutePoints $tripTwoRoute
+    Send-Trip -TripName 'Recorrido 3' -StartUtc $tripThreeStart -RoutePoints $tripThreeRoute
+    Send-Trip -TripName 'Recorrido 4' -StartUtc $tripFourStart -RoutePoints $tripFourRoute
 
     Write-Host ''
     Write-Host "Simulacion enviada. Esperando $settleSeconds segundos para que el backend procese los recorridos..."

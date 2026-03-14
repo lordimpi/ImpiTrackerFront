@@ -111,7 +111,7 @@ function New-CobanTrackerPayload {
 
     $lat = Convert-ToCobanCoordinate -Decimal $Latitude -PositiveHemisphere 'N' -NegativeHemisphere 'S' -DegreeDigits 2
     $lon = Convert-ToCobanCoordinate -Decimal $Longitude -PositiveHemisphere 'E' -NegativeHemisphere 'W' -DegreeDigits 3
-    $datePart = $UtcTime.ToString('ddMMyyHHmmss')
+    $datePart = $UtcTime.ToString('yyMMddHHmmss')
 
     return "imei:$DeviceImei,tracker,$datePart,,F,175816.000,A,$($lat.Value),$($lat.Hemisphere),$($lon.Value),$($lon.Hemisphere),,;"
 }
