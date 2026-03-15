@@ -1,0 +1,40 @@
+.ops-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.ops-filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.ops-filters__field {
+  display: grid;
+  gap: 0.45rem;
+  min-width: min(100%, 16rem);
+  color: var(--ink-strong);
+}
+
+.ops-filters__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ops-page__content {
+  min-height: 18rem;
+}
+
+@media (max-width: 720px) {
+  .ops-filters,
+  .ops-filters__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ops-filters__actions .p-button {
+    width: 100%;
+  }
+}

@@ -1,3 +1,15 @@
 <p-toast position="top-right" />
 <p-confirmdialog />
-<router-outlet />
+
+@if (shouldHoldProtectedSsrRender()) {
+  <section class="app-shell-hold">
+    <div class="app-shell-hold__panel">
+      <app-loading-spinner mode="inline" size="md" label="Cargando tu sesion..." />
+      <p class="app-shell-hold__copy">
+        Preparando la vista protegida para evitar saltos durante la recarga.
+      </p>
+    </div>
+  </section>
+} @else {
+  <router-outlet />
+}

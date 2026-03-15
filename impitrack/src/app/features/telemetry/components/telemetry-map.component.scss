@@ -1,0 +1,67 @@
+.telemetry-map-shell {
+  position: relative;
+}
+
+.telemetry-map {
+  min-height: 24rem;
+  border-radius: 1.1rem;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  background:
+    linear-gradient(180deg, rgba(7, 19, 26, 0.82), rgba(7, 16, 23, 0.92)),
+    radial-gradient(circle at top, rgba(119, 201, 222, 0.16), transparent 40%);
+}
+
+.telemetry-map__empty-copy {
+  position: absolute;
+  inset: 1rem;
+  display: grid;
+  gap: 0.65rem;
+  place-items: center;
+  justify-items: center;
+  padding: 2rem;
+  border-radius: 0.9rem;
+  background: rgba(6, 16, 22, 0.38);
+  color: var(--ink-faint);
+  text-align: center;
+  pointer-events: none;
+}
+
+.telemetry-map__empty-copy i {
+  font-size: 1.3rem;
+  color: var(--route-cyan);
+}
+
+:host ::ng-deep .telemetry-map__vehicle-icon-shell {
+  background: transparent;
+  border: 0;
+}
+
+:host ::ng-deep .telemetry-map__vehicle-icon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  border: 2px solid var(--route-cyan);
+  color: var(--route-cyan);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+:host ::ng-deep .telemetry-map__vehicle-icon--active {
+  background: color-mix(in srgb, var(--surface-soft) 86%, transparent);
+  border-color: var(--beacon-green);
+  color: var(--beacon-green);
+}
+
+:host ::ng-deep .leaflet-control-attribution {
+  background: rgba(6, 16, 22, 0.82);
+  color: var(--ink-faint);
+}
+
+:host ::ng-deep .leaflet-popup-content-wrapper,
+:host ::ng-deep .leaflet-popup-tip {
+  background: rgba(6, 16, 22, 0.96);
+  color: var(--ink-strong);
+}

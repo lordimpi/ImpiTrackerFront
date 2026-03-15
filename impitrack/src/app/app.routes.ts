@@ -45,6 +45,13 @@ export const routes: Routes = [
           import('./features/account/account.routes').then((m) => m.ACCOUNT_ROUTES),
       },
       {
+        path: 'map',
+        loadComponent: () =>
+          import('./features/telemetry/pages/telemetry-map-page.component').then(
+            (m) => m.TelemetryMapPageComponent,
+          ),
+      },
+      {
         path: 'devices',
         loadChildren: () =>
           import('./features/devices/devices.routes').then((m) => m.DEVICES_ROUTES),
@@ -76,17 +83,12 @@ export const routes: Routes = [
     component: AppShellComponent,
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['Admin', 'Ops'],
+      roles: ['Admin'],
     },
     children: [
       {
-        path: 'raw',
-        loadChildren: () => import('./features/ops/ops.routes').then((m) => m.OPS_ROUTES),
-      },
-      {
         path: '',
-        pathMatch: 'full',
-        redirectTo: 'raw',
+        loadChildren: () => import('./features/ops/ops.routes').then((m) => m.OPS_ROUTES),
       },
     ],
   },

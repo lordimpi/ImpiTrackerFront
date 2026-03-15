@@ -32,6 +32,13 @@
   margin-top: 0.35rem;
 }
 
+.remember-field {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ink-strong);
+}
+
 .auth-links {
   margin-top: 1rem;
   display: flex;

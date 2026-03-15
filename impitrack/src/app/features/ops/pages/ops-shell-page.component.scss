@@ -1,0 +1,61 @@
+.ops-shell-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.ops-shell-hero {
+  display: grid;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--panel-fill);
+
+  h1 {
+    margin: 0.25rem 0 0.5rem;
+    color: var(--ink-strong);
+    font-family: var(--font-headline);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  p {
+    margin: 0;
+    color: var(--ink-weak);
+    max-width: 44rem;
+    line-height: 1.7;
+  }
+}
+
+.ops-shell-hero__eyebrow {
+  color: var(--beacon-green);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.74rem;
+}
+
+.ops-nav {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ops-nav__link {
+  padding: 0.7rem 0.95rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  color: var(--ink-weak);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.ops-nav__link:hover,
+.ops-nav__link--active {
+  color: var(--ink-strong);
+  border-color: color-mix(in srgb, var(--beacon-green) 22%, transparent);
+  background: color-mix(in srgb, var(--panel-fill) 90%, var(--beacon-green) 10%);
+}

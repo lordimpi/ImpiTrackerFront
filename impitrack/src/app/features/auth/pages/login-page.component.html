@@ -28,6 +28,15 @@
         }
       </label>
 
+      <label class="remember-field" for="remember-session">
+        <p-checkbox
+          inputId="remember-session"
+          formControlName="rememberSession"
+          [binary]="true"
+        ></p-checkbox>
+        <span>Recordar sesion en este dispositivo</span>
+      </label>
+
       @if (submitError()) {
         <p-message severity="error" [text]="submitError() ?? ''"></p-message>
       }

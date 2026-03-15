@@ -1,12 +1,16 @@
 # IMPITrack Frontend
 
-Frontend de IMPITrack construido con Angular 21, SSR y PrimeNG. Este repositorio contiene solo la aplicación web y consume la API de IMPITrack; no incluye lógica de negocio del backend.
+Frontend de IMPITrack construido con Angular 21, SSR y PrimeNG. Este repositorio contiene solo la aplicacion web y consume la API de IMPITrack; no incluye la logica de negocio del backend.
 
-## Estado actual
+## Estado del MVP
 
-- Fase 0 cerrada: fundación técnica, SSR, arquitectura base, layouts, guards, interceptors y theming.
-- Fase 1 cerrada: registro, login, refresh, logout, perfil, recuperación y restablecimiento de contraseña.
-- Siguiente fase: `Mis dispositivos`.
+- Fase 0 cerrada: fundacion tecnica, SSR, arquitectura base, layouts, guards e interceptors.
+- Fase 1 cerrada: auth completa con registro, login, refresh, logout, perfil y recuperacion de contrasena.
+- Fase 2 cerrada: `Mis dispositivos` con listado, vinculacion y desvinculacion.
+- Fase 3 cerrada: administracion de usuarios, planes y dispositivos.
+- Fase 4 cerrada: toolbox de operaciones (`raw`, `errors`, `sessions`, `ports`) y recordar sesion.
+- Fase 5 cerrada: hardening, smoke final, consistencia UX y cierre del MVP.
+- Estado actual: MVP funcional cerrado.
 
 ## Desarrollo local
 
@@ -22,7 +26,7 @@ Levanta el frontend:
 npm start
 ```
 
-La aplicación queda disponible en `http://localhost:4200/`.
+La aplicacion queda disponible en `http://localhost:4200/`.
 
 La API de desarrollo esperada por el frontend es:
 
@@ -36,36 +40,42 @@ https://localhost:54124
 npm start
 npm run build
 npm run watch
-npm test
+npm test -- --watch=false
 npm run serve:ssr:impitrack
 ```
 
 ## Estructura del proyecto
 
-- `src/app/core/`: auth, guards, interceptors, configuración y layouts.
-- `src/app/shared/`: modelos, utilidades, validadores y UI reutilizable.
+- `src/app/core/`: auth, guards, interceptors, configuracion y layouts.
+- `src/app/shared/`: modelos, utilidades, validadores y bloques reutilizables de interfaz.
 - `src/app/features/`: `auth`, `dashboard`, `account`, `devices`, `admin-users`, `ops`.
-- `public/`: assets estáticos.
+- `public/`: assets estaticos.
 
 ## Convenciones
 
-- Código en inglés.
-- Documentación y textos visibles en español.
+- Codigo en ingles.
+- Documentacion y textos visibles en espanol.
 - Componentes con archivos separados `.ts`, `.html` y `.scss`.
 - Arquitectura orientada por features.
 - Compatibilidad SSR obligatoria.
 - PrimeNG como base de UI.
 
-## Flujos validados en Fase 1
+## Verificacion manual recomendada
 
-- Registro con validaciones y mensajes de negocio.
-- Verificación de correo contra backend real.
-- Login y logout.
-- Persistencia y refresh de sesión.
-- `GET /api/me`.
-- Recuperación y restablecimiento de contraseña.
-- Guards por autenticación y rol.
+- Auth: registro, login, logout, recordar sesion, recuperacion y reset.
+- Devices: listar, vincular y desvincular IMEI.
+- Admin: listado, detalle, cambio de plan y gestion de dispositivos.
+- Ops: `raw`, `errors`, `sessions` y `ports` con usuario `Admin`.
 
-## Próximo paso
+## Nota tecnica
 
-Fase 2 se enfocará en `Mis dispositivos`: listado, vinculación, desvinculación, estados de carga/error y confirmaciones de UX.
+El budget inicial del bundle de produccion se ajusto a `760 kB` para reflejar mejor el tamano actual del shell SSR + PrimeNG. Sigue siendo un pendiente de optimizacion, pero ya no bloquea el cierre funcional del MVP.
+
+## Siguiente etapa
+
+Lo siguiente queda fuera del MVP actual y se puede abordar como etapa posterior:
+
+- optimizacion del bundle inicial
+- graficos y dashboards analiticos
+- mapa y telemetria en tiempo real
+- mejoras avanzadas de accesibilidad y performance

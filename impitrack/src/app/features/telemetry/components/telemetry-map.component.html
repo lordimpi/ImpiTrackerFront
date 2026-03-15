@@ -1,0 +1,10 @@
+<div class="telemetry-map-shell">
+  <div #mapHost class="telemetry-map"></div>
+
+  @if (!hasMapData) {
+    <div class="telemetry-map__empty-copy">
+      <i class="pi pi-map-marker"></i>
+      <span>{{ emptyLabel() }}</span>
+    </div>
+  }
+</div>

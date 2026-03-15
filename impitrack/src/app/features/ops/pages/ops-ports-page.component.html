@@ -1,0 +1,66 @@
+<section class="ops-page">
+  <p-card>
+    <ng-template pTemplate="title">Puertos de ingesta</ng-template>
+    <ng-template pTemplate="subtitle">
+      Monitorea backlog, conexiones activas y volumen de ACK por listener.
+    </ng-template>
+
+    <div class="ops-page__actions">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-refresh"
+        label="Actualizar"
+        severity="secondary"
+        (click)="refresh()"
+      ></button>
+
+      @if (refreshing()) {
+        <p-tag value="Actualizando..." severity="secondary"></p-tag>
+      }
+    </div>
+  </p-card>
+
+  <div class="app-loading-region ops-page__content" [attr.aria-busy]="pendingInitialLoad()">
+    @if (featureError()) {
+      <p-card>
+        <ng-template pTemplate="title">No pudimos cargar los puertos</ng-template>
+        <p-message severity="error" [text]="featureError() ?? ''"></p-message>
+      </p-card>
+    } @else if (hasPorts()) {
+      <div class="ports-grid">
+        @for (port of ports(); track port.port) {
+          <p-card class="port-card">
+            <ng-template pTemplate="title">Puerto {{ port.port }}</ng-template>
+            <ng-template pTemplate="subtitle">
+              {{ port.activeConnections }} conexiones activas
+            </ng-template>
+
+            <dl class="port-card__metrics">
+              <div><dt>Frames</dt><dd>{{ port.framesIn }}</dd></div>
+              <div><dt>Parseo ok</dt><dd>{{ port.parseOk }}</dd></div>
+              <div><dt>Parseo fallido</dt><dd>{{ port.parseFail }}</dd></div>
+              <div><dt>ACK enviados</dt><dd>{{ port.ackSent }}</dd></div>
+            </dl>
+
+            <p-tag
+              [value]="'Backlog ' + port.backlog"
+              [severity]="getBacklogSeverity(port)"
+            ></p-tag>
+          </p-card>
+        }
+      </div>
+    } @else {
+      <p-card>
+        <ng-template pTemplate="title">No hay puertos con snapshot</ng-template>
+        <ng-template pTemplate="subtitle">
+          La API aun no reporta informacion operativa de ingesta por listener.
+        </ng-template>
+      </p-card>
+    }
+
+    @if (pendingInitialLoad()) {
+      <app-loading-spinner mode="screen" size="sm" label="Cargando puertos..." />
+    }
+  </div>
+</section>

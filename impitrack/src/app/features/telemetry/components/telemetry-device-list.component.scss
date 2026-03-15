@@ -1,0 +1,57 @@
+.telemetry-device-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.telemetry-device-card {
+  display: grid;
+  gap: 0.95rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line-soft);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+}
+
+.telemetry-device-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.telemetry-device-card__head strong,
+.telemetry-device-card__meta dd {
+  color: var(--ink-strong);
+}
+
+.telemetry-device-card__head strong {
+  font-family: var(--font-mono);
+}
+
+.telemetry-device-card__meta {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.telemetry-device-card__meta div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.telemetry-device-card__meta dt {
+  color: var(--ink-faint);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.telemetry-device-card__meta dd {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .telemetry-device-card .p-button {
+    width: 100%;
+  }
+}

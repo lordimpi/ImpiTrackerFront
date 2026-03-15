@@ -1,0 +1,27 @@
+<div class="telemetry-trips-list">
+  @for (trip of trips(); track trip.tripId) {
+    <button
+      type="button"
+      class="telemetry-trips-list__item"
+      [class.telemetry-trips-list__item--active]="trip.tripId === selectedTripId()"
+      [disabled]="pendingSelection()"
+      (click)="openTrip(trip.tripId)"
+    >
+      <div class="telemetry-trips-list__head">
+        <strong>{{ trip.startedAtUtc | date: 'short' }}</strong>
+        <span>{{ trip.endedAtUtc ? 'Finalizado' : 'En curso' }}</span>
+      </div>
+
+      <div class="telemetry-trips-list__metrics">
+        <span>{{ trip.pointCount }} puntos</span>
+        <span>
+          @if (trip.maxSpeedKmh != null) {
+            Max {{ trip.maxSpeedKmh | number: '1.0-1' }} km/h
+          } @else {
+            Max sin dato
+          }
+        </span>
+      </div>
+    </button>
+  }
+</div>

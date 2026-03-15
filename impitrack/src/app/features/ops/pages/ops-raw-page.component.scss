@@ -1,0 +1,53 @@
+.ops-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.ops-filters {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 2fr) minmax(13rem, 1fr) auto;
+}
+
+.ops-filters__field {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--ink-strong);
+}
+
+.ops-filters__actions,
+.ops-page__meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ops-filters__actions {
+  align-self: end;
+}
+
+.ops-page__content {
+  min-height: 18rem;
+}
+
+.ops-table__actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .ops-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .ops-filters__actions .p-button,
+  .ops-table__actions .p-button {
+    width: 100%;
+  }
+
+  .ops-table__actions {
+    width: auto;
+    white-space: normal;
+  }
+}

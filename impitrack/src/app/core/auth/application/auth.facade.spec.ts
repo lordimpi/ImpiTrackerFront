@@ -11,6 +11,7 @@ describe('AuthFacade', () => {
 
   beforeEach(() => {
     globalThis.localStorage.clear();
+    globalThis.sessionStorage.clear();
 
     TestBed.configureTestingModule({
       providers: [
@@ -37,7 +38,7 @@ describe('AuthFacade', () => {
     const loginPromise = facade.login({
       userNameOrEmail: 'admin',
       password: 'secure-pass',
-    });
+    }, true);
 
     httpController.expectOne(`${apiBaseUrl}/api/auth/login`).flush({
       data: {
@@ -70,11 +71,12 @@ describe('AuthFacade', () => {
     expect(facade.isAuthenticated()).toBe(true);
     expect(facade.user()?.email).toBe('admin@imptrack.local');
     expect(facade.roles()).toEqual(['Admin']);
+    expect(globalThis.localStorage.getItem('impitrack.auth')).toContain('refresh-token');
     httpController.verify();
   });
 
   it('clears state when refresh fails with unauthorized', async () => {
-    globalThis.localStorage.setItem(
+    globalThis.sessionStorage.setItem(
       'impitrack.auth',
       JSON.stringify({
         session: {
@@ -128,6 +130,8 @@ describe('AuthFacade', () => {
     await initPromise;
 
     expect(facade.isAuthenticated()).toBe(false);
+    expect(globalThis.localStorage.getItem('impitrack.auth')).toBeNull();
+    expect(globalThis.sessionStorage.getItem('impitrack.auth')).toBeNull();
     httpController.verify();
   });
 });

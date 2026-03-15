@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Password } from 'primeng/password';
@@ -15,6 +16,7 @@ import { normalizeApiError } from '../../../shared/utils/api-response.util';
   imports: [
     ButtonDirective,
     Card,
+    Checkbox,
     InputText,
     LoadingSpinnerComponent,
     Message,
@@ -36,6 +38,7 @@ export class LoginPageComponent {
   protected readonly form = this.formBuilder.group({
     userNameOrEmail: ['', [Validators.required, Validators.minLength(3)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
+    rememberSession: [false],
   });
 
   protected async submit(): Promise<void> {
@@ -48,7 +51,8 @@ export class LoginPageComponent {
     this.submitError.set(null);
 
     try {
-      await this.authFacade.login(this.form.getRawValue());
+      const { rememberSession, ...credentials } = this.form.getRawValue();
+      await this.authFacade.login(credentials, rememberSession);
       await this.router.navigate(['/app/dashboard']);
     } catch (error) {
       const apiError = normalizeApiError(error);

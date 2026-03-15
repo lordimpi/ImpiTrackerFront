@@ -1,0 +1,27 @@
+<p-table [value]="rows()" responsiveLayout="scroll">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Ocurrio</th>
+      <th>Codigo</th>
+      <th>Protocolo</th>
+      <th>Tipo</th>
+      <th>Packet</th>
+      <th>Sesion</th>
+      <th>Payload</th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-event>
+    <tr>
+      <td>{{ event.occurredAtUtc | date: 'medium' }}</td>
+      <td><span class="telemetry-event-code">{{ event.eventCode }}</span></td>
+      <td>{{ normalizeText(event.protocol) }}</td>
+      <td>{{ normalizeText(event.messageType) }}</td>
+      <td><code>{{ event.packetId }}</code></td>
+      <td><code>{{ event.sessionId }}</code></td>
+      <td class="telemetry-event-payload-cell">
+        <code class="telemetry-event-payload">{{ event.payloadText || '-' }}</code>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>

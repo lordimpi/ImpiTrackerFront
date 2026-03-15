@@ -1,0 +1,38 @@
+<div class="telemetry-trip-summary">
+  <article class="telemetry-trip-summary__card">
+    <span>Inicio</span>
+    <strong>{{ trip().startedAtUtc | date: 'medium' }}</strong>
+  </article>
+  <article class="telemetry-trip-summary__card">
+    <span>Fin</span>
+    <strong>{{ trip().endedAtUtc ? (trip().endedAtUtc | date: 'medium') : 'En curso' }}</strong>
+  </article>
+  <article class="telemetry-trip-summary__card">
+    <span>Puntos</span>
+    <strong>{{ trip().pointCount }}</strong>
+  </article>
+  <article class="telemetry-trip-summary__card">
+    <span>Velocidad maxima</span>
+    <strong>
+      @if (trip().maxSpeedKmh != null) {
+        {{ trip().maxSpeedKmh | number: '1.0-1' }} km/h
+      } @else {
+        Sin dato
+      }
+    </strong>
+  </article>
+  <article class="telemetry-trip-summary__card">
+    <span>Velocidad promedio</span>
+    <strong>
+      @if (trip().avgSpeedKmh != null) {
+        {{ trip().avgSpeedKmh | number: '1.0-1' }} km/h
+      } @else {
+        Sin dato
+      }
+    </strong>
+  </article>
+  <article class="telemetry-trip-summary__card">
+    <span>Regla</span>
+    <strong>{{ trip().sourceRule }}</strong>
+  </article>
+</div>

@@ -1,0 +1,25 @@
+.telemetry-trip-summary {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+.telemetry-trip-summary__card {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 0.95rem;
+  background: linear-gradient(180deg, rgba(10, 24, 34, 0.82), rgba(8, 18, 26, 0.94));
+}
+
+.telemetry-trip-summary__card span {
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.telemetry-trip-summary__card strong {
+  color: var(--ink-strong);
+}

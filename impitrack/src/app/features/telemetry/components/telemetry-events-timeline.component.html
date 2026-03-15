@@ -1,0 +1,51 @@
+<div class="telemetry-timeline">
+  @for (event of rows(); track event.eventId) {
+    <article class="telemetry-timeline__item">
+      <div class="telemetry-timeline__rail">
+        <span
+          class="telemetry-timeline__dot"
+          [class.telemetry-timeline__dot--danger]="severityFor(event.eventCode) === 'danger'"
+          [class.telemetry-timeline__dot--warn]="severityFor(event.eventCode) === 'warn'"
+          [class.telemetry-timeline__dot--success]="severityFor(event.eventCode) === 'success'"
+          [class.telemetry-timeline__dot--info]="severityFor(event.eventCode) === 'info'"
+        ></span>
+      </div>
+
+      <div class="telemetry-timeline__content">
+        <div class="telemetry-timeline__header">
+          <div class="telemetry-timeline__heading">
+            <p-tag [value]="event.eventCode" [severity]="severityFor(event.eventCode)"></p-tag>
+            <strong>{{ event.occurredAtUtc | date: 'medium' }}</strong>
+          </div>
+          <span class="telemetry-timeline__received">
+            Recibido {{ event.receivedAtUtc | date: 'short' }}
+          </span>
+        </div>
+
+        <dl class="telemetry-timeline__meta">
+          <div>
+            <dt>Protocolo</dt>
+            <dd>{{ normalizeText(event.protocol) }}</dd>
+          </div>
+          <div>
+            <dt>Tipo</dt>
+            <dd>{{ normalizeText(event.messageType) }}</dd>
+          </div>
+          <div>
+            <dt>Packet</dt>
+            <dd><code>{{ event.packetId }}</code></dd>
+          </div>
+          <div>
+            <dt>Sesion</dt>
+            <dd><code>{{ event.sessionId }}</code></dd>
+          </div>
+        </dl>
+
+        <div class="telemetry-timeline__payload">
+          <span class="telemetry-timeline__payload-label">Payload</span>
+          <code>{{ event.payloadText || 'Sin payload textual disponible.' }}</code>
+        </div>
+      </div>
+    </article>
+  }
+</div>
