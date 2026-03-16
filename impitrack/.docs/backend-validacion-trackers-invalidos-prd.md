@@ -1,5 +1,11 @@
 # PRD Backend: validacion y observabilidad de trackers TCP mal formados
 
+## Estado del documento
+
+- Este documento define un PRD backend especializado para reducir ambiguedad entre ingreso TCP y telemetria util.
+- El PRD maestro en `.docs/product-source-of-truth-prd.md` es la fuente de verdad de alto nivel para framing del producto y readiness.
+- Este documento no debe interpretarse como evidencia de release cerrada de `telemetry`; describe una dependencia para que la experiencia sea confiable y no ambigua.
+
 ## Resumen
 
 Hoy el listener TCP acepta y persiste frames `Tracking` aun cuando el payload viene mal formado y no puede transformarse en una posicion util para telemetria. Eso deja una experiencia ambigua:

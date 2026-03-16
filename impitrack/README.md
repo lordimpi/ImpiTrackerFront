@@ -2,15 +2,31 @@
 
 Frontend de IMPITrack construido con Angular 21, SSR y PrimeNG. Este repositorio contiene solo la aplicacion web y consume la API de IMPITrack; no incluye la logica de negocio del backend.
 
-## Estado del MVP
+## Estado del producto
 
-- Fase 0 cerrada: fundacion tecnica, SSR, arquitectura base, layouts, guards e interceptors.
-- Fase 1 cerrada: auth completa con registro, login, refresh, logout, perfil y recuperacion de contrasena.
-- Fase 2 cerrada: `Mis dispositivos` con listado, vinculacion y desvinculacion.
-- Fase 3 cerrada: administracion de usuarios, planes y dispositivos.
-- Fase 4 cerrada: toolbox de operaciones (`raw`, `errors`, `sessions`, `ports`) y recordar sesion.
-- Fase 5 cerrada: hardening, smoke final, consistencia UX y cierre del MVP.
-- Estado actual: MVP funcional cerrado.
+IMPITrack ya no se describe como un MVP especulativo. La base actual corresponde a un producto operativo en evolucion post-MVP, con capacidades estables de autenticacion, gestion de dispositivos, administracion, observabilidad operativa y una expansion activa de experiencias de telemetria y monitoreo.
+
+## Stack principal
+
+- Angular 21 con componentes standalone.
+- SSR habilitado para navegador y servidor.
+- PrimeNG como base del sistema de UI.
+- Leaflet para experiencias de mapa y monitoreo geoespacial.
+- RxJS y Angular Signals segun la necesidad del flujo.
+- SCSS y arquitectura frontend orientada por features.
+
+## Enfoque arquitectonico
+
+- Estructura por `core`, `shared` y `features` para separar preocupaciones globales, reutilizables y de dominio.
+- Features organizadas con capas como `pages`, `components`, `application`, `data-access` y `models` cuando aporta claridad.
+- Compatibilidad SSR como restriccion de base, evitando acoplar la UI a APIs exclusivas del navegador.
+- Integracion desacoplada del backend mediante contratos existentes y mapeos de UI cuando hace falta.
+
+## Documentacion clave
+
+- `.docs/product-source-of-truth-prd.md`: fuente principal de narrativa, alcance y prioridades del producto.
+- `.docs/telemetry-release-status.md`: companion de release para interpretar que parte de telemetria esta liberada, en validacion activa o planificada.
+- `.docs/frontend-post-mvp-plan.md`: roadmap frontend posterior a la base operativa ya cerrada.
 
 ## Desarrollo local
 
@@ -48,7 +64,7 @@ npm run serve:ssr:impitrack
 
 - `src/app/core/`: auth, guards, interceptors, configuracion y layouts.
 - `src/app/shared/`: modelos, utilidades, validadores y bloques reutilizables de interfaz.
-- `src/app/features/`: `auth`, `dashboard`, `account`, `devices`, `admin-users`, `ops`.
+- `src/app/features/`: `auth`, `dashboard`, `account`, `devices`, `admin-users`, `ops`, `telemetry`.
 - `public/`: assets estaticos.
 
 ## Convenciones
@@ -69,13 +85,4 @@ npm run serve:ssr:impitrack
 
 ## Nota tecnica
 
-El budget inicial del bundle de produccion se ajusto a `760 kB` para reflejar mejor el tamano actual del shell SSR + PrimeNG. Sigue siendo un pendiente de optimizacion, pero ya no bloquea el cierre funcional del MVP.
-
-## Siguiente etapa
-
-Lo siguiente queda fuera del MVP actual y se puede abordar como etapa posterior:
-
-- optimizacion del bundle inicial
-- graficos y dashboards analiticos
-- mapa y telemetria en tiempo real
-- mejoras avanzadas de accesibilidad y performance
+El budget inicial del bundle de produccion se ajusto a `760 kB` para reflejar mejor el tamano actual del shell SSR + PrimeNG. Sigue siendo un pendiente de optimizacion, pero no redefine la narrativa del producto ni su baseline operativo actual.

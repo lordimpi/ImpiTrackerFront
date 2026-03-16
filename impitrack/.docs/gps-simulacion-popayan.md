@@ -1,5 +1,11 @@
 # Simulacion GPS Coban para Popayan
 
+## Estado del documento
+
+- Este documento es una guia operativa de validacion local/dev para simulacion GPS.
+- El PRD maestro en `.docs/product-source-of-truth-prd.md` es la fuente de verdad de alto nivel del producto.
+- Esta guia no define estado de release; sirve para QA, troubleshooting y validacion manual de flujos soportados por el entorno disponible.
+
 ## Objetivo
 
 Generar datos GPS simulados para un IMEI vinculado y ver el recorrido en:

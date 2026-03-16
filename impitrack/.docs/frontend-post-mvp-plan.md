@@ -1,10 +1,16 @@
 # Plan de ejecucion frontend post-MVP para IMPITrack
 
+## Estado del documento
+
+- Este documento es una referencia especializada de roadmap frontend post-MVP.
+- El PRD maestro en `.docs/product-source-of-truth-prd.md` es la fuente de verdad de alto nivel del producto y de la narrativa de release.
+- Este roadmap no reemplaza el PRD maestro y no debe leerse como confirmacion automatica de que `telemetry` ya este liberado en produccion; describe direccion, dependencias y cortes de implementacion.
+
 ## 1. Objetivo
 
 Definir la hoja de ruta de frontend despues del cierre del MVP actual, priorizando experiencias de monitoreo reales sobre nuevas pantallas administrativas o analiticas.
 
-Este documento funciona como base de conocimiento activa para las siguientes etapas del producto y reemplaza al MVP como referencia principal de planificacion frontend.
+Este documento funciona como base de conocimiento activa para las siguientes etapas del frontend y complementa al PRD maestro como referencia de planificacion especializada.
 
 La prioridad inicial es evolucionar desde CRUD + toolbox operativa hacia:
 
