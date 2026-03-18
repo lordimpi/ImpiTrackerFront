@@ -72,7 +72,9 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
     this.markerLayer = undefined;
     this.mapInitPromise = undefined;
 
-    const hostElement = this.mapHost?.nativeElement as (HTMLDivElement & { _leaflet_id?: number }) | undefined;
+    const hostElement = this.mapHost?.nativeElement as
+      | (HTMLDivElement & { _leaflet_id?: number })
+      | undefined;
     if (hostElement && '_leaflet_id' in hostElement) {
       delete hostElement._leaflet_id;
     }
@@ -132,16 +134,21 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
 
     const boundsPoints: Array<[number, number]> = [];
 
-    if (this.pathPoints().length > 1) {
-      const pathLatLngs = this.pathPoints().map((point) => [point.latitude, point.longitude] as [number, number]);
-      this.leaflet
-        .polyline(pathLatLngs, {
-          color: '#77c9de',
-          weight: 4,
-          opacity: 0.8,
-        })
-        .addTo(this.markerLayer);
-      boundsPoints.push(...pathLatLngs);
+    const pathPoints = this.pathPoints();
+    if (pathPoints.length > 1) {
+      const segments = this.segmentByIgnition(pathPoints);
+      for (const segment of segments) {
+        this.leaflet
+          .polyline(segment.coords, {
+            color: segment.color,
+            weight: 4,
+            opacity: 0.8,
+          })
+          .addTo(this.markerLayer);
+      }
+      boundsPoints.push(
+        ...pathPoints.map((point) => [point.latitude, point.longitude] as [number, number]),
+      );
     }
 
     for (const marker of this.markers()) {
@@ -177,5 +184,41 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
     this.map.fitBounds(boundsPoints, {
       padding: [24, 24],
     });
+  }
+
+  private segmentByIgnition(
+    points: readonly TelemetryMapMarker[],
+  ): Array<{ coords: [number, number][]; color: string }> {
+    if (points.length < 2) {
+      return [];
+    }
+
+    const segments: Array<{ coords: [number, number][]; color: string }> = [];
+    const colorFor = (ignitionOn: boolean | undefined): string =>
+      ignitionOn === true ? '#77c9de' : '#aaaaaa';
+
+    let currentColor = colorFor(points[0].ignitionOn);
+    let currentCoords: [number, number][] = [[points[0].latitude, points[0].longitude]];
+
+    for (let i = 1; i < points.length; i++) {
+      const point = points[i];
+      const pointColor = colorFor(point.ignitionOn);
+      const coord: [number, number] = [point.latitude, point.longitude];
+
+      if (pointColor !== currentColor) {
+        currentCoords.push(coord);
+        segments.push({ coords: currentCoords, color: currentColor });
+        currentCoords = [coord];
+        currentColor = pointColor;
+      } else {
+        currentCoords.push(coord);
+      }
+    }
+
+    if (currentCoords.length >= 2) {
+      segments.push({ coords: currentCoords, color: currentColor });
+    }
+
+    return segments;
   }
 }

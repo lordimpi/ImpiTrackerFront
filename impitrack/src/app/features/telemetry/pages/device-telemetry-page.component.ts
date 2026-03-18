@@ -1,5 +1,12 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -76,7 +83,9 @@ export class DeviceTelemetryPageComponent {
   protected readonly hasEvents = this.facade.hasEvents;
   protected readonly hasPositions = this.facade.hasPositions;
   protected readonly activePreset = signal<TelemetryRangePreset>('day');
-  protected readonly currentWindow = signal<TelemetryWindowSelection>(buildTelemetryPresetWindow('day'));
+  protected readonly currentWindow = signal<TelemetryWindowSelection>(
+    buildTelemetryPresetWindow('day'),
+  );
   protected readonly activeContentPanelView = signal<TelemetryContentPanelView>('map');
   protected readonly activeEventsPanelView = signal<TelemetryEventsPanelView>('timeline');
   protected readonly summaryDialogVisible = signal(false);
@@ -111,7 +120,9 @@ export class DeviceTelemetryPageComponent {
       },
     ];
   });
-  protected readonly currentMapMarkers = computed<readonly TelemetryMapMarker[]>(() => this.summaryMarkers());
+  protected readonly currentMapMarkers = computed<readonly TelemetryMapMarker[]>(() =>
+    this.summaryMarkers(),
+  );
   protected readonly currentMapPathPoints = computed<readonly TelemetryMapMarker[]>(() => []);
   protected readonly tripMapMarkers = computed<readonly TelemetryMapMarker[]>(() => {
     const trip = this.selectedTrip();
@@ -139,6 +150,7 @@ export class DeviceTelemetryPageComponent {
       longitude: position.longitude,
       lastSeenAtUtc: position.receivedAtUtc,
       protocol: this.device()?.protocol ?? null,
+      ignitionOn: position.ignitionOn,
     }));
   });
   protected readonly fallbackRouteAvailable = computed(
@@ -174,6 +186,7 @@ export class DeviceTelemetryPageComponent {
       longitude: position.longitude,
       lastSeenAtUtc: position.receivedAtUtc,
       protocol: device.protocol,
+      ignitionOn: position.ignitionOn,
     }));
   });
   protected readonly fallbackRouteSummary = computed(() => {
@@ -192,11 +205,19 @@ export class DeviceTelemetryPageComponent {
       pointCount: positions.length,
       maxSpeedKmh: speeds.length > 0 ? Math.max(...speeds) : null,
       avgSpeedKmh:
-        speeds.length > 0 ? speeds.reduce((total, speed) => total + speed, 0) / speeds.length : null,
+        speeds.length > 0
+          ? speeds.reduce((total, speed) => total + speed, 0) / speeds.length
+          : null,
     };
   });
   protected readonly eventCodeOptions = computed(() => {
-    const distinctCodes = [...new Set(this.events().map((event) => event.eventCode).filter(Boolean))]
+    const distinctCodes = [
+      ...new Set(
+        this.events()
+          .map((event) => event.eventCode)
+          .filter(Boolean),
+      ),
+    ]
       .sort((left, right) => left.localeCompare(right))
       .map((code) => ({
         label: code,
@@ -266,7 +287,8 @@ export class DeviceTelemetryPageComponent {
     combineLatest([this.route.paramMap, this.route.data])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([params, data]) => {
-        const telemetryContext = (data['telemetryContext'] as 'self' | 'admin' | undefined) ?? 'self';
+        const telemetryContext =
+          (data['telemetryContext'] as 'self' | 'admin' | undefined) ?? 'self';
         const context: TelemetryContext =
           telemetryContext === 'admin'
             ? {
@@ -343,7 +365,11 @@ export class DeviceTelemetryPageComponent {
   }
 
   protected async retryLoad(): Promise<void> {
-    await this.facade.initialize(this.facade.context(), this.facade.imei() ?? '', this.currentWindow());
+    await this.facade.initialize(
+      this.facade.context(),
+      this.facade.imei() ?? '',
+      this.currentWindow(),
+    );
   }
 
   protected async goBack(): Promise<void> {
