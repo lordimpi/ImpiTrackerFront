@@ -23,8 +23,8 @@
   --radius-panel: 1.35rem;
   --radius-control: 0.95rem;
   --space-unit: 0.5rem;
-  --font-headline: 'Bahnschrift', 'Aptos Display', 'Segoe UI Variable Display', 'Segoe UI',
-    sans-serif;
+  --font-headline:
+    'Bahnschrift', 'Aptos Display', 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
   --font-body: 'Aptos', 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
 }
@@ -125,4 +125,34 @@ pre {
 
 .p-toast {
   max-width: min(26rem, calc(100vw - 2rem));
+}
+
+/* PRD tokens */
+:root {
+  --bg-base: #0a0c10;
+  --bg-panel: #0f1218;
+  --bg-card: #141820;
+  --bg-card-hover: #1a2030;
+  --bg-elevated: #1e2535;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.13);
+  --accent: #00e5a0;
+  --accent-dim: rgba(0, 229, 160, 0.12);
+  --accent-glow: rgba(0, 229, 160, 0.35);
+  --color-warn: #f59e0b;
+  --warn-dim: rgba(245, 158, 11, 0.12);
+  --color-danger: #ef4444;
+  --danger-dim: rgba(239, 68, 68, 0.12);
+  --color-info: #3b82f6;
+  --info-dim: rgba(59, 130, 246, 0.12);
+  --text-primary: #f0f4ff;
+  --text-secondary: #8892a8;
+  --text-muted: #4d5a72;
+  --radius-lg: 12px;
+  --radius-sm: 8px;
+  --sidebar-w: 64px;
+  --sidebar-expanded: 220px;
+  --panel-w: 320px;
+  --font-ui: 'Syne', 'Inter', system-ui, sans-serif;
+  --font-mono-new: 'Space Mono', 'Fira Code', monospace;
 }

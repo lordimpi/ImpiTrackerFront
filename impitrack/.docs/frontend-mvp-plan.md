@@ -1,5 +1,11 @@
 # Plan de ejecución frontend para IMPITrack
 
+## Estado del documento
+
+- Este documento se conserva como referencia historica del plan MVP/base del frontend.
+- El PRD maestro en `.docs/product-source-of-truth-prd.md` es la fuente de verdad de alto nivel del producto.
+- Este plan sigue siendo util para entender el cierre de la base inicial, pero no reemplaza el framing actual del producto ni define por si solo el estado de release de `telemetry`.
+
 ## 1. Objetivo
 
 Construir una aplicación frontend separada para consumir la API actual de IMPITrack y cubrir el flujo operativo central del producto:

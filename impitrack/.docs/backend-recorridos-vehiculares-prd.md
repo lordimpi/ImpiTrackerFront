@@ -1,5 +1,11 @@
 # PRD Backend: recorridos vehiculares para telemetria
 
+## Estado del documento
+
+- Este documento define un PRD backend especializado para recorridos como dependencia de producto.
+- El PRD maestro en `.docs/product-source-of-truth-prd.md` es la fuente de verdad de alto nivel para framing, prioridades y release intent.
+- Este documento no confirma por si solo que `trips` o `telemetry` esten liberados; define el contrato y comportamiento esperados para cerrar esa brecha.
+
 ## Resumen
 
 La telemetria actual ya expone:

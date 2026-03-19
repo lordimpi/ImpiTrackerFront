@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  padding: 1.5rem 1.75rem 2rem;
+  overflow-y: auto;
+}
+
 .devices-page {
   display: grid;
   gap: 1.5rem;

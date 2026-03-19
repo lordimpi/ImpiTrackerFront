@@ -1,370 +1,410 @@
-<section class="device-telemetry-page">
-  @if (notFound()) {
-    <p-card class="device-telemetry-page__state-card">
-      <ng-template pTemplate="title">Telemetria no disponible</ng-template>
-      <ng-template pTemplate="subtitle">
+@if (notFound()) {
+  <div class="telemetry-page telemetry-page--state">
+    <div class="tp-state">
+      <i class="pi pi-exclamation-triangle tp-state__icon"></i>
+      <h2 class="tp-state__title">Telemetria no disponible</h2>
+      <p class="tp-state__text">
         El dispositivo solicitado no existe dentro del contexto actual o ya no esta vinculado.
-      </ng-template>
+      </p>
+      <button class="tp-btn tp-btn--secondary" (click)="goBack()">
+        <i class="pi pi-arrow-left"></i>
+        {{ backLabel() }}
+      </button>
+    </div>
+  </div>
+} @else if (featureError()) {
+  <div class="telemetry-page telemetry-page--state">
+    <div class="tp-state">
+      <i class="pi pi-times-circle tp-state__icon tp-state__icon--error"></i>
+      <h2 class="tp-state__title">No pudimos cargar la telemetria</h2>
+      <p class="tp-state__text">{{ featureError() }}</p>
+      <button
+        class="tp-btn tp-btn--secondary"
+        [disabled]="pendingInitialLoad()"
+        (click)="retryLoad()"
+      >
+        <i class="pi pi-refresh"></i>
+        Reintentar
+      </button>
+    </div>
+  </div>
+} @else {
+  <div class="telemetry-page">
+    <!-- MAPA FULLSCREEN -->
+    <div class="telemetry-page__map">
+      <app-telemetry-map
+        [markers]="fullscreenMapMarkers()"
+        [pathPoints]="fullscreenMapPathPoints()"
+        [activeImei]="device()?.imei ?? null"
+        [emptyLabel]="'No hay ubicacion conocida para este dispositivo.'"
+      />
+    </div>
 
-      <div class="device-telemetry-page__state-actions">
-        <button
-          pButton
-          type="button"
-          icon="pi pi-arrow-left"
-          [label]="backLabel()"
-          severity="secondary"
-          (click)="goBack()"
-        ></button>
+    <!-- PANEL DERECHO -->
+    <aside class="telemetry-page__panel">
+      <!-- Header -->
+      <div class="tp-header">
+        <div class="tp-header__info">
+          <div class="tp-header__imei">{{ device()?.imei ?? 'Cargando...' }}</div>
+          <div class="tp-header__meta">{{ windowLabel() }}</div>
+        </div>
+        <div class="tp-header__actions">
+          <button class="tp-icon-btn" (click)="openSummaryDialog()" aria-label="Resumen">
+            <i class="pi pi-info-circle"></i>
+          </button>
+          <button
+            class="tp-icon-btn"
+            (click)="refresh()"
+            [disabled]="pendingInitialLoad() || pendingRefresh()"
+            aria-label="Actualizar"
+          >
+            <i class="pi pi-refresh"></i>
+          </button>
+          <button class="tp-icon-btn" (click)="goBack()" aria-label="Volver">
+            <i class="pi pi-arrow-left"></i>
+          </button>
+        </div>
       </div>
-    </p-card>
-  } @else {
-    <div class="app-loading-region device-telemetry-page__content" [attr.aria-busy]="pendingInitialLoad()">
-      @if (featureError()) {
-        <p-card class="device-telemetry-page__state-card">
-          <ng-template pTemplate="title">No pudimos cargar la telemetria</ng-template>
-          @if (featureError(); as featureErrorText) {
-            <p-message severity="error" [text]="featureErrorText"></p-message>
-          }
 
-          <div class="device-telemetry-page__state-actions">
-            <button
-              pButton
-              type="button"
-              icon="pi pi-refresh"
-              label="Reintentar"
-              severity="secondary"
-              [disabled]="pendingInitialLoad()"
-              (click)="retryLoad()"
-            ></button>
+      <!-- Presets de tiempo -->
+      <div class="tp-time-filter">
+        <button
+          class="tp-time-filter__btn"
+          [class.tp-time-filter__btn--active]="activePreset() === 'hour'"
+          (click)="applyPreset('hour')"
+        >
+          1H
+        </button>
+        <button
+          class="tp-time-filter__btn"
+          [class.tp-time-filter__btn--active]="activePreset() === 'day'"
+          (click)="applyPreset('day')"
+        >
+          HOY
+        </button>
+        <button
+          class="tp-time-filter__btn"
+          [class.tp-time-filter__btn--active]="activePreset() === 'week'"
+          (click)="applyPreset('week')"
+        >
+          7D
+        </button>
+        <button
+          class="tp-time-filter__btn"
+          [class.tp-time-filter__btn--active]="activePreset() === 'custom'"
+          (click)="activePreset.set('custom')"
+        >
+          <i class="pi pi-calendar"></i>
+        </button>
+      </div>
+
+      <!-- Rango custom -->
+      @if (activePreset() === 'custom') {
+        <form class="tp-custom-range" [formGroup]="customRangeForm" (ngSubmit)="applyCustomRange()">
+          <label class="tp-custom-range__field">
+            <span>Desde</span>
+            <input pInputText type="datetime-local" formControlName="from" />
+          </label>
+          <label class="tp-custom-range__field">
+            <span>Hasta</span>
+            <input pInputText type="datetime-local" formControlName="to" />
+          </label>
+          <button
+            class="tp-btn tp-btn--accent tp-custom-range__apply"
+            type="submit"
+            [disabled]="customRangeForm.invalid || pendingRefresh()"
+          >
+            Aplicar
+          </button>
+        </form>
+      }
+
+      <!-- Tabs -->
+      <div class="panel-tabs">
+        <button
+          class="panel-tabs__tab"
+          [class.panel-tabs__tab--active]="activeContentPanelView() === 'map'"
+          (click)="selectContentPanelView('map')"
+        >
+          Info
+        </button>
+        <button
+          class="panel-tabs__tab"
+          [class.panel-tabs__tab--active]="activeContentPanelView() === 'trips'"
+          (click)="selectContentPanelView('trips')"
+        >
+          Recorridos
+        </button>
+        <button
+          class="panel-tabs__tab"
+          [class.panel-tabs__tab--active]="activeContentPanelView() === 'events'"
+          (click)="selectContentPanelView('events')"
+        >
+          Eventos
+        </button>
+      </div>
+
+      <!-- Panel body scrollable -->
+      <div class="tp-body">
+        <!-- TAB: Info -->
+        @if (activeContentPanelView() === 'map') {
+          <div class="tp-section">
+            <div class="tp-section__label">Ultima ubicacion</div>
+            <div class="tp-insights">
+              <article class="tp-insight">
+                <span>Coordenadas</span>
+                <strong>
+                  @if (device()?.lastPosition; as lastPosition) {
+                    {{ lastPosition.latitude | number: '1.4-4' }},
+                    {{ lastPosition.longitude | number: '1.4-4' }}
+                  } @else {
+                    Sin posicion conocida
+                  }
+                </strong>
+              </article>
+              <article class="tp-insight">
+                <span>Velocidad</span>
+                <strong>
+                  @if (device()?.lastPosition?.speedKmh != null) {
+                    {{ device()?.lastPosition?.speedKmh | number: '1.0-1' }} km/h
+                  } @else {
+                    Sin dato
+                  }
+                </strong>
+              </article>
+              <article class="tp-insight">
+                <span>Rumbo</span>
+                <strong>
+                  @if (device()?.lastPosition?.headingDeg != null) {
+                    {{ device()?.lastPosition?.headingDeg | number: '1.0-0' }}&deg;
+                  } @else {
+                    Sin dato
+                  }
+                </strong>
+              </article>
+            </div>
           </div>
-        </p-card>
-      } @else {
-        <p-card class="device-telemetry-page__content-card">
-          <ng-template pTemplate="title">Telemetria del dispositivo</ng-template>
-          <ng-template pTemplate="subtitle">
-            Consulta la ultima ubicacion del dispositivo, revisa sus recorridos y filtra eventos sin hacer scroll largo.
-          </ng-template>
+        }
 
-          <section class="device-telemetry-page__section">
-            <div class="device-telemetry-page__toolbar-row">
-              <div class="device-telemetry-page__preset-group">
-                <button
-                  pButton
-                  type="button"
-                  label="Ultima hora"
-                  [severity]="activePreset() === 'hour' ? undefined : 'secondary'"
-                  (click)="applyPreset('hour')"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  label="24 horas"
-                  [severity]="activePreset() === 'day' ? undefined : 'secondary'"
-                  (click)="applyPreset('day')"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  label="7 dias"
-                  [severity]="activePreset() === 'week' ? undefined : 'secondary'"
-                  (click)="applyPreset('week')"
-                ></button>
-              </div>
+        <!-- TAB: Recorridos -->
+        @if (activeContentPanelView() === 'trips') {
+          <div class="tp-section">
+            @if (hasTrips()) {
+              <app-telemetry-trips-list
+                [trips]="trips()"
+                [selectedTripId]="selectedTrip()?.tripId ?? null"
+                [pendingSelection]="pendingTripSelection()"
+                (selectTrip)="selectTrip($event)"
+              />
 
-              <div class="device-telemetry-page__hero-actions">
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-info-circle"
-                  label="Resumen"
-                  severity="secondary"
-                  (click)="openSummaryDialog()"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-arrow-left"
-                  [label]="backLabel()"
-                  severity="secondary"
-                  (click)="goBack()"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-refresh"
-                  label="Actualizar"
-                  severity="secondary"
-                  [disabled]="pendingInitialLoad() || pendingRefresh()"
-                  (click)="refresh()"
-                ></button>
-              </div>
-            </div>
+              @if (tripErrorMessage(); as tripErrorText) {
+                <p-message severity="warn" [text]="tripErrorText"></p-message>
+              }
 
-            <p class="device-telemetry-page__window-copy">{{ windowLabel() }}</p>
+              @if (selectedTrip(); as trip) {
+                <app-telemetry-trip-summary [trip]="trip" />
+              }
+            } @else if (fallbackRouteAvailable()) {
+              <p-message
+                severity="info"
+                text="No hay recorridos segmentados. Mostrando historial de posiciones como respaldo."
+              ></p-message>
 
-            <form class="device-telemetry-page__custom-range" [formGroup]="customRangeForm" (ngSubmit)="applyCustomRange()">
-              <label class="device-telemetry-page__field">
-                <span>Desde</span>
-                <input pInputText type="datetime-local" formControlName="from" />
-              </label>
+              <p class="tp-copy">{{ fallbackRouteLabel() }}</p>
 
-              <label class="device-telemetry-page__field">
-                <span>Hasta</span>
-                <input pInputText type="datetime-local" formControlName="to" />
-              </label>
-
-              <button
-                pButton
-                type="submit"
-                label="Aplicar rango"
-                severity="secondary"
-                [disabled]="customRangeForm.invalid || pendingRefresh()"
-              ></button>
-            </form>
-          </section>
-
-          <section class="device-telemetry-page__section">
-            <div class="device-telemetry-page__content-switch">
-              <button
-                pButton
-                type="button"
-                label="Mapa"
-                [severity]="activeContentPanelView() === 'map' ? undefined : 'secondary'"
-                (click)="selectContentPanelView('map')"
-              ></button>
-              <button
-                pButton
-                type="button"
-                label="Eventos"
-                [severity]="activeContentPanelView() === 'events' ? undefined : 'secondary'"
-                (click)="selectContentPanelView('events')"
-              ></button>
-            </div>
-
-            @if (activeContentPanelView() === 'map') {
-              <div class="device-telemetry-page__panel-section">
-                <div class="device-telemetry-page__map-section">
-                  <div class="device-telemetry-page__section-head">
-                    <span class="device-telemetry-page__section-label">Ultima ubicacion</span>
-                  </div>
-
-                  <app-telemetry-map
-                    [markers]="currentMapMarkers()"
-                    [pathPoints]="currentMapPathPoints()"
-                    [activeImei]="device()?.imei ?? null"
-                    [emptyLabel]="'No hay ultima ubicacion conocida para este dispositivo.'"
-                  />
-
-                  <div class="device-telemetry-page__map-insight-grid">
-                    <article class="device-telemetry-page__map-insight">
-                      <span>Ultima ubicacion</span>
-                      <strong>
-                        @if (device()?.lastPosition; as lastPosition) {
-                          {{ lastPosition.latitude | number: '1.4-4' }},
-                          {{ lastPosition.longitude | number: '1.4-4' }}
-                        } @else {
-                          Sin posicion conocida
-                        }
-                      </strong>
-                    </article>
-                    <article class="device-telemetry-page__map-insight">
-                      <span>Velocidad actual</span>
-                      <strong>
-                        @if (device()?.lastPosition?.speedKmh != null) {
-                          {{ device()?.lastPosition?.speedKmh | number: '1.0-1' }} km/h
-                        } @else {
-                          Sin dato
-                        }
-                      </strong>
-                    </article>
-                    <article class="device-telemetry-page__map-insight">
-                      <span>Rumbo</span>
-                      <strong>
-                        @if (device()?.lastPosition?.headingDeg != null) {
-                          {{ device()?.lastPosition?.headingDeg | number: '1.0-0' }} grados
-                        } @else {
-                          Sin dato
-                        }
-                      </strong>
-                    </article>
-                  </div>
-                </div>
-
-                <div class="device-telemetry-page__map-section">
-                  <div class="device-telemetry-page__section-head">
-                    <span class="device-telemetry-page__section-label">Recorridos</span>
-                  </div>
-
-                  @if (hasTrips()) {
-                    <div class="device-telemetry-page__trips-layout">
-                      <div class="device-telemetry-page__trips-column">
-                        <app-telemetry-trips-list
-                          [trips]="trips()"
-                          [selectedTripId]="selectedTrip()?.tripId ?? null"
-                          [pendingSelection]="pendingTripSelection()"
-                          (selectTrip)="selectTrip($event)"
-                        />
-                      </div>
-
-                      <div class="device-telemetry-page__trip-detail">
-                        <app-telemetry-map
-                          [markers]="tripMapMarkers()"
-                          [pathPoints]="tripMapPathPoints()"
-                          [activeImei]="device()?.imei ?? null"
-                          [emptyLabel]="'No hay puntos suficientes para mostrar el recorrido seleccionado.'"
-                        />
-
-                        @if (tripErrorMessage(); as tripErrorText) {
-                          <p-message severity="warn" [text]="tripErrorText"></p-message>
-                        }
-
-                        <p class="device-telemetry-page__trip-window-copy">{{ tripWindowLabel() }}</p>
-
-                        @if (selectedTrip(); as trip) {
-                          <app-telemetry-trip-summary [trip]="trip" />
-                        }
-                      </div>
-                    </div>
-                  } @else if (fallbackRouteAvailable()) {
-                    <div class="device-telemetry-page__trip-detail">
-                      <p-message
-                        severity="info"
-                        text="No hay recorridos segmentados en esta ventana. Mostrando el historial de posiciones como respaldo."
-                      ></p-message>
-
-                      <app-telemetry-map
-                        [markers]="fallbackRouteMarkers()"
-                        [pathPoints]="fallbackRoutePathPoints()"
-                        [activeImei]="device()?.imei ?? null"
-                        [emptyLabel]="'No hay suficientes posiciones para construir una ruta de respaldo.'"
-                      />
-
-                      <p class="device-telemetry-page__trip-window-copy">{{ fallbackRouteLabel() }}</p>
-
-                      @if (fallbackRouteSummary(); as routeSummary) {
-                        <div class="device-telemetry-page__map-insight-grid">
-                          <article class="device-telemetry-page__map-insight">
-                            <span>Puntos</span>
-                            <strong>{{ routeSummary.pointCount }}</strong>
-                          </article>
-                          <article class="device-telemetry-page__map-insight">
-                            <span>Velocidad maxima</span>
-                            <strong>
-                              @if (routeSummary.maxSpeedKmh != null) {
-                                {{ routeSummary.maxSpeedKmh | number: '1.0-1' }} km/h
-                              } @else {
-                                Sin dato
-                              }
-                            </strong>
-                          </article>
-                          <article class="device-telemetry-page__map-insight">
-                            <span>Velocidad promedio</span>
-                            <strong>
-                              @if (routeSummary.avgSpeedKmh != null) {
-                                {{ routeSummary.avgSpeedKmh | number: '1.0-1' }} km/h
-                              } @else {
-                                Sin dato
-                              }
-                            </strong>
-                          </article>
-                          <article class="device-telemetry-page__map-insight">
-                            <span>Inicio</span>
-                            <strong>{{ routeSummary.startedAtUtc | date: 'short' }}</strong>
-                          </article>
-                          <article class="device-telemetry-page__map-insight">
-                            <span>Fin</span>
-                            <strong>{{ routeSummary.endedAtUtc | date: 'short' }}</strong>
-                          </article>
-                        </div>
-                      }
-                    </div>
-                  } @else {
-                    <p-message
-                      severity="info"
-                      text="No hay recorridos ni suficientes posiciones disponibles dentro de esta ventana."
-                    ></p-message>
-                  }
-                </div>
-              </div>
-            } @else {
-              <div class="device-telemetry-page__panel-section">
-                @if (hasEvents()) {
-                  <div class="device-telemetry-page__events-toolbar">
-                    <label class="device-telemetry-page__field">
-                      <span>Filtrar por evento</span>
-                      <p-select
-                        [options]="eventCodeOptions()"
-                        optionLabel="label"
-                        optionValue="value"
-                        [formControl]="eventFilterControl"
-                        placeholder="Todos los eventos"
-                      ></p-select>
-                    </label>
-
-                    <div class="device-telemetry-page__events-summary">
-                      <span>{{ eventSummaryLabel() }}</span>
-                      @if (selectedEventCode() !== 'all') {
-                        <button
-                          pButton
-                          type="button"
-                          icon="pi pi-filter-slash"
-                          label="Quitar filtro"
-                          severity="secondary"
-                          (click)="resetEventFilter()"
-                        ></button>
-                      }
-                    </div>
-                  </div>
-
-                  @if (hasFilteredEvents()) {
-                    <div class="device-telemetry-page__events-panel-switch">
-                      <button
-                        pButton
-                        type="button"
-                        label="Timeline"
-                        [severity]="activeEventsPanelView() === 'timeline' ? undefined : 'secondary'"
-                        (click)="selectEventsPanelView('timeline')"
-                      ></button>
-                      <button
-                        pButton
-                        type="button"
-                        label="Detalle tabular"
-                        [severity]="activeEventsPanelView() === 'table' ? undefined : 'secondary'"
-                        (click)="selectEventsPanelView('table')"
-                      ></button>
-                    </div>
-
-                    <div class="device-telemetry-page__events-scroll">
-                      @if (activeEventsPanelView() === 'timeline') {
-                        <app-telemetry-events-timeline [events]="filteredEvents()" />
+              @if (fallbackRouteSummary(); as routeSummary) {
+                <div class="tp-insights">
+                  <article class="tp-insight">
+                    <span>Puntos</span>
+                    <strong>{{ routeSummary.pointCount }}</strong>
+                  </article>
+                  <article class="tp-insight">
+                    <span>Vel. maxima</span>
+                    <strong>
+                      @if (routeSummary.maxSpeedKmh != null) {
+                        {{ routeSummary.maxSpeedKmh | number: '1.0-1' }} km/h
                       } @else {
-                        <app-telemetry-events-table [events]="filteredEvents()" />
+                        Sin dato
                       }
-                    </div>
-                  } @else {
-                    <p-message
-                      severity="info"
-                      text="No hay eventos para el filtro seleccionado dentro de esta ventana."
-                    ></p-message>
-                  }
-                } @else {
-                  <p-message severity="info" text="No hay eventos dentro de la ventana seleccionada."></p-message>
-                }
+                    </strong>
+                  </article>
+                  <article class="tp-insight">
+                    <span>Vel. promedio</span>
+                    <strong>
+                      @if (routeSummary.avgSpeedKmh != null) {
+                        {{ routeSummary.avgSpeedKmh | number: '1.0-1' }} km/h
+                      } @else {
+                        Sin dato
+                      }
+                    </strong>
+                  </article>
+                  <article class="tp-insight">
+                    <span>Inicio</span>
+                    <strong>{{ routeSummary.startedAtUtc | date: 'short' }}</strong>
+                  </article>
+                  <article class="tp-insight">
+                    <span>Fin</span>
+                    <strong>{{ routeSummary.endedAtUtc | date: 'short' }}</strong>
+                  </article>
+                </div>
+              }
+            } @else {
+              <div class="tp-empty">
+                <i class="pi pi-map tp-empty__icon"></i>
+                <p>No hay recorridos ni posiciones en esta ventana.</p>
               </div>
             }
-          </section>
-        </p-card>
-      }
+          </div>
+        }
 
-      @if (pendingInitialLoad()) {
-        <app-loading-spinner mode="screen" size="sm" label="Cargando telemetria..." />
-      } @else if (pendingRefresh()) {
-        <app-loading-spinner mode="screen" size="sm" label="Actualizando telemetria..." />
-      }
+        <!-- TAB: Eventos -->
+        @if (activeContentPanelView() === 'events') {
+          <div class="tp-section">
+            @if (hasEvents()) {
+              <div class="tp-events-toolbar">
+                <label class="tp-events-toolbar__filter">
+                  <span>Filtrar</span>
+                  <p-select
+                    [options]="eventCodeOptions()"
+                    optionLabel="label"
+                    optionValue="value"
+                    [formControl]="eventFilterControl"
+                    placeholder="Todos los eventos"
+                  ></p-select>
+                </label>
+                @if (selectedEventCode() !== 'all') {
+                  <button
+                    class="tp-icon-btn"
+                    (click)="resetEventFilter()"
+                    aria-label="Quitar filtro"
+                  >
+                    <i class="pi pi-filter-slash"></i>
+                  </button>
+                }
+              </div>
+
+              <div class="tp-events-summary">{{ eventSummaryLabel() }}</div>
+
+              @if (hasFilteredEvents()) {
+                @for (event of filteredEvents(); track event.eventId) {
+                  <div class="tp-event-row" (click)="openEventDetail(event)">
+                    <span
+                      class="tp-event-row__dot"
+                      [class.tp-event-row__dot--danger]="
+                        event.eventCode.toLowerCase().includes('alarm') ||
+                        event.eventCode.toLowerCase().includes('error')
+                      "
+                      [class.tp-event-row__dot--success]="
+                        event.eventCode.toLowerCase().includes('acc_on') ||
+                        event.eventCode.toLowerCase().includes('heartbeat')
+                      "
+                      [class.tp-event-row__dot--info]="
+                        event.eventCode.toLowerCase().includes('tracking') ||
+                        event.eventCode.toLowerCase().includes('position') ||
+                        event.eventCode.toLowerCase().includes('pwr_on')
+                      "
+                      [class.tp-event-row__dot--warn]="
+                        event.eventCode.toLowerCase().includes('login') ||
+                        event.eventCode.toLowerCase().includes('connect')
+                      "
+                    ></span>
+                    <div class="tp-event-row__info">
+                      <span class="tp-event-row__code">{{ event.eventCode }}</span>
+                      <span class="tp-event-row__time">{{
+                        event.occurredAtUtc | date: 'dd/MM HH:mm'
+                      }}</span>
+                    </div>
+                    <i class="pi pi-chevron-right tp-event-row__arrow"></i>
+                  </div>
+                }
+              } @else {
+                <div class="tp-empty">
+                  <i class="pi pi-filter-slash tp-empty__icon"></i>
+                  <p>No hay eventos para el filtro seleccionado.</p>
+                </div>
+              }
+            } @else {
+              <div class="tp-empty">
+                <i class="pi pi-bell tp-empty__icon"></i>
+                <p>No hay eventos en la ventana seleccionada.</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Loading overlays -->
+    @if (pendingInitialLoad()) {
+      <div class="telemetry-page__loading">
+        <app-loading-spinner mode="inline" size="sm" label="Cargando telemetria..." />
+      </div>
+    } @else if (pendingRefresh()) {
+      <div class="telemetry-page__loading">
+        <app-loading-spinner mode="inline" size="sm" label="Actualizando telemetria..." />
+      </div>
+    }
+  </div>
+}
+
+<!-- Dialog de detalle del evento -->
+<p-dialog
+  header="Detalle del evento"
+  [visible]="eventDetailVisible()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: 'min(92vw, 36rem)' }"
+  (visibleChange)="!$event ? closeEventDetail() : null"
+>
+  @if (selectedEvent(); as evt) {
+    <dl class="tp-summary-grid">
+      <div>
+        <dt>Codigo</dt>
+        <dd>
+          <strong>{{ evt.eventCode }}</strong>
+        </dd>
+      </div>
+      <div>
+        <dt>Ocurrio</dt>
+        <dd>{{ evt.occurredAtUtc | date: 'medium' }}</dd>
+      </div>
+      <div>
+        <dt>Recibido</dt>
+        <dd>{{ evt.receivedAtUtc | date: 'medium' }}</dd>
+      </div>
+      <div>
+        <dt>Protocolo</dt>
+        <dd>{{ normalizeText(evt.protocol) }}</dd>
+      </div>
+      <div>
+        <dt>Tipo de mensaje</dt>
+        <dd>{{ normalizeText(evt.messageType) }}</dd>
+      </div>
+      <div>
+        <dt>Packet ID</dt>
+        <dd>
+          <code>{{ evt.packetId }}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>Session ID</dt>
+        <dd>
+          <code>{{ evt.sessionId }}</code>
+        </dd>
+      </div>
+    </dl>
+    <div class="tp-event-detail-payload">
+      <dt>Payload</dt>
+      <dd>
+        <code>{{ evt.payloadText || 'Sin payload textual disponible.' }}</code>
+      </dd>
     </div>
   }
-</section>
+</p-dialog>
 
+<!-- Dialog de resumen -->
 <p-dialog
   header="Resumen del dispositivo"
   [visible]="summaryDialogVisible()"
@@ -376,14 +416,20 @@
   (visibleChange)="!$event ? closeSummaryDialog() : null"
 >
   @if (device(); as currentDevice) {
-    <dl class="device-telemetry-page__summary-grid">
+    <dl class="tp-summary-grid">
       <div>
         <dt>IMEI</dt>
         <dd>{{ currentDevice.imei }}</dd>
       </div>
       <div>
         <dt>Ultimo visto</dt>
-        <dd>{{ currentDevice.lastSeenAtUtc ? (currentDevice.lastSeenAtUtc | date: 'medium') : 'Sin dato' }}</dd>
+        <dd>
+          {{
+            currentDevice.lastSeenAtUtc
+              ? (currentDevice.lastSeenAtUtc | date: 'medium')
+              : 'Sin dato'
+          }}
+        </dd>
       </div>
       <div>
         <dt>Protocolo</dt>

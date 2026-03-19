@@ -1,102 +1,173 @@
-<section class="telemetry-map-page">
-  <p-card class="telemetry-map-page__hero">
-    <ng-template pTemplate="title">Mapa</ng-template>
-    <ng-template pTemplate="subtitle">
-      Visualiza la ultima posicion conocida de tus GPS y entra rapido al detalle de telemetria.
-    </ng-template>
+<div class="map-page">
+  <!-- MAPA FULLSCREEN -->
+  <div class="map-page__map">
+    <app-telemetry-map [markers]="markers()" [pathPoints]="[]" [emptyLabel]="'Sin posiciones'" />
+  </div>
 
-    <div class="telemetry-map-page__hero-actions">
-      <button
-        pButton
-        type="button"
-        icon="pi pi-refresh"
-        label="Actualizar"
-        severity="secondary"
-        [disabled]="pendingInitialLoad() || refreshing()"
-        (click)="refresh()"
-      ></button>
-    </div>
-  </p-card>
-
-  <div class="app-loading-region telemetry-map-page__content" [attr.aria-busy]="pendingInitialLoad()">
-    @if (featureError()) {
-      <p-card class="telemetry-map-page__state-card">
-        <ng-template pTemplate="title">No pudimos cargar el mapa</ng-template>
-        @if (featureError(); as featureErrorText) {
-          <p-message severity="error" [text]="featureErrorText"></p-message>
+  <!-- PANEL DERECHO -->
+  <aside class="device-panel">
+    <!-- Resumen rápido -->
+    <div class="panel-summary">
+      <div class="float-card__title">Resumen · Hoy</div>
+      <div class="float-card__stats">
+        <div class="float-stat">
+          <span class="float-stat__value" style="color: var(--accent)">{{
+            facade.devices().length
+          }}</span>
+          <span class="float-stat__label">Dispositivos</span>
+        </div>
+        <div class="float-stat">
+          <span class="float-stat__value">{{ markers().length }}</span>
+          <span class="float-stat__label">Con posición</span>
+        </div>
+      </div>
+      <div class="panel-summary__footer">
+        <div class="live-badge">
+          <span class="live-badge__dot"></span>
+          ACTUALIZANDO · cada {{ pollingCountdown() }}s
+        </div>
+        @if (markers().length > 0) {
+          <div class="status-bar">
+            <span class="status-bar__item">
+              <span class="status-bar__dot status-bar__dot--green"></span>
+              {{ markers().length }} activos
+            </span>
+            <span class="status-bar__item">hace {{ pollingCountdown() }}s</span>
+          </div>
         }
+      </div>
+    </div>
 
-        <div class="telemetry-map-page__state-actions">
+    <div class="device-panel__header">
+      <div>
+        <div class="device-panel__title">Mis Dispositivos</div>
+        <div class="device-panel__subtitle">{{ facade.devices().length }} GPS vinculados</div>
+      </div>
+      <button
+        class="device-panel__add-btn"
+        (click)="openDeviceTelemetry('')"
+        aria-label="Vincular dispositivo"
+      >
+        <i class="pi pi-plus"></i>
+      </button>
+    </div>
+
+    <!-- Barra de uso del plan -->
+    @if (user()) {
+      <div class="plan-bar">
+        <div class="plan-bar__header">
+          <span>Uso del plan</span>
+          <span class="plan-bar__count">{{ user()!.usedGps }} / {{ user()!.maxGps }} GPS</span>
+        </div>
+        <div class="plan-bar__track">
+          <div
+            class="plan-bar__fill"
+            [style.width.%]="(user()!.usedGps / user()!.maxGps) * 100"
+          ></div>
+        </div>
+      </div>
+    }
+
+    <!-- Tabs -->
+    <div class="panel-tabs">
+      <button
+        class="panel-tabs__tab"
+        [class.panel-tabs__tab--active]="activeTab() === 'fleet'"
+        (click)="activeTab.set('fleet')"
+      >
+        Flota
+      </button>
+      <button
+        class="panel-tabs__tab"
+        [class.panel-tabs__tab--active]="activeTab() === 'events'"
+        (click)="activeTab.set('events')"
+      >
+        Eventos
+      </button>
+      <button
+        class="panel-tabs__tab"
+        [class.panel-tabs__tab--active]="activeTab() === 'trips'"
+        (click)="activeTab.set('trips')"
+      >
+        Recorridos
+      </button>
+    </div>
+
+    <!-- Contenido scrollable -->
+    <div class="device-panel__body">
+      @if (pendingInitialLoad()) {
+        <app-loading-spinner mode="inline" size="sm" label="Cargando..." />
+      } @else if (featureError()) {
+        <div class="device-panel__error">
+          <p>{{ featureError() }}</p>
           <button
             pButton
-            type="button"
+            size="small"
+            severity="secondary"
             icon="pi pi-refresh"
             label="Reintentar"
-            severity="secondary"
-            [disabled]="pendingInitialLoad()"
             (click)="retryLoad()"
           ></button>
         </div>
-      </p-card>
-    } @else {
-      <section class="telemetry-map-page__grid">
-        <p-card class="telemetry-map-page__devices-card">
-          <ng-template pTemplate="title">Dispositivos monitoreados</ng-template>
-          <ng-template pTemplate="subtitle">
-            Selecciona un IMEI para abrir su historial y eventos recientes.
-          </ng-template>
-
-          @if (hasDevices()) {
-            <app-telemetry-device-list
-              [devices]="devices()"
-              (openTelemetry)="openDeviceTelemetry($event)"
-            />
+      } @else {
+        <!-- Tab: Flota -->
+        @if (activeTab() === 'fleet') {
+          @if (facade.devices().length === 0) {
+            <div class="device-panel__empty">
+              <p>Sin dispositivos vinculados.</p>
+            </div>
           } @else {
-            <div class="telemetry-map-page__empty-devices">
-              <p>
-                Todavia no tienes dispositivos para monitorear. Vincula al menos un GPS para empezar
-                a ver posiciones y eventos.
-              </p>
-
-              <button
-                pButton
-                type="button"
-                icon="pi pi-truck"
-                label="Ir a Mis dispositivos"
-                (click)="goToDevices()"
-              ></button>
-            </div>
+            @for (device of facade.devices(); track device.imei) {
+              <div class="device-list-item" (click)="openDeviceTelemetry(device.imei)">
+                <div
+                  class="device-list-item__icon"
+                  [class.device-list-item__icon--online]="device.lastPosition !== null"
+                >
+                  <i class="pi pi-car"></i>
+                </div>
+                <div class="device-list-item__info">
+                  <div class="device-list-item__name">{{ device.imei }}</div>
+                  <div class="device-list-item__sub">
+                    @if (device.lastPosition) {
+                      {{ device.lastPosition.speedKmh ?? 0 }} km/h ·
+                      {{ device.lastSeenAtUtc | date: 'dd/MM HH:mm' }}
+                    } @else {
+                      Sin posición
+                    }
+                  </div>
+                </div>
+                <div
+                  class="device-list-item__status"
+                  [class.device-list-item__status--online]="device.lastPosition !== null"
+                ></div>
+              </div>
+            }
           }
-        </p-card>
+        }
 
-        <p-card class="telemetry-map-page__map-card">
-          <ng-template pTemplate="title">Ultima posicion conocida</ng-template>
-          <ng-template pTemplate="subtitle">
-            Solo se muestran marcadores para dispositivos con posicion disponible.
-          </ng-template>
+        <!-- Tab: Eventos (próximamente) -->
+        @if (activeTab() === 'events') {
+          <div class="device-panel__coming-soon">
+            <i class="pi pi-bell"></i>
+            <p>Próximamente</p>
+          </div>
+        }
 
-          @if (!hasMappableDevices()) {
-            <div class="telemetry-map-page__map-message">
-              <p-message
-                severity="info"
-                [text]="hasDevices()
-                  ? 'Todavia no hay posiciones registradas para tus dispositivos vinculados.'
-                  : 'El mapa se centra en Colombia mientras todavia no tengas dispositivos o posiciones.'"
-              ></p-message>
-            </div>
-          }
+        <!-- Tab: Recorridos (próximamente) -->
+        @if (activeTab() === 'trips') {
+          <div class="device-panel__coming-soon">
+            <i class="pi pi-map"></i>
+            <p>Próximamente</p>
+          </div>
+        }
+      }
+    </div>
+  </aside>
 
-          <app-telemetry-map
-            [markers]="markers()"
-            [pathPoints]="[]"
-            [emptyLabel]="'Todavia no hay posiciones conocidas para ubicar en el mapa.'"
-          />
-        </p-card>
-      </section>
-    }
-
-    @if (pendingInitialLoad()) {
-      <app-loading-spinner mode="screen" size="sm" label="Cargando mapa..." />
-    }
-  </div>
-</section>
+  <!-- Loading overlay -->
+  @if (pendingInitialLoad()) {
+    <div class="map-page__loading">
+      <app-loading-spinner mode="inline" size="sm" label="Cargando mapa..." />
+    </div>
+  }
+</div>

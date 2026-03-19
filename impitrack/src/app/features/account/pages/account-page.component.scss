@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  padding: 1.5rem 1.75rem 2rem;
+  overflow-y: auto;
+}
+
 .page-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -32,6 +32,7 @@ export interface DevicePositionPointDto {
   readonly headingDeg: number | null;
   readonly packetId: string;
   readonly sessionId: string;
+  readonly ignitionOn?: boolean;
 }
 
 export interface DeviceEventDto {
@@ -84,6 +85,7 @@ export interface TelemetryMapMarker {
   readonly longitude: number;
   readonly lastSeenAtUtc: string | null;
   readonly protocol: TelemetryPrimitive | null;
+  readonly ignitionOn?: boolean;
 }
 
 export type TelemetryRangePreset = 'hour' | 'day' | 'week' | 'custom';

@@ -40,6 +40,22 @@ export class TelemetryEventsTimelineComponent {
       return 'info';
     }
 
+    if (normalized.includes('acc_on')) {
+      return 'success';
+    }
+
+    if (normalized.includes('acc_off')) {
+      return 'secondary';
+    }
+
+    if (normalized.includes('pwr_on')) {
+      return 'info';
+    }
+
+    if (normalized.includes('pwr_off')) {
+      return 'secondary';
+    }
+
     if (normalized.includes('login') || normalized.includes('connect')) {
       return 'warn';
     }

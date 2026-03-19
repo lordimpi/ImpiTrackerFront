@@ -1,22 +1,26 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest } from 'rxjs';
-import { ButtonDirective } from 'primeng/button';
-import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { DeviceTelemetryFacade } from '../application/device-telemetry.facade';
-import { TelemetryEventsTableComponent } from '../components/telemetry-events-table.component';
-import { TelemetryEventsTimelineComponent } from '../components/telemetry-events-timeline.component';
 import { TelemetryMapComponent } from '../components/telemetry-map.component';
 import { TelemetryTripSummaryComponent } from '../components/telemetry-trip-summary.component';
 import { TelemetryTripsListComponent } from '../components/telemetry-trips-list.component';
 import {
+  DeviceEventDto,
   TelemetryContext,
   TelemetryMapMarker,
   TelemetryRangePreset,
@@ -28,14 +32,12 @@ import {
 } from '../models/telemetry.model';
 import { LoadingSpinnerComponent } from '../../../shared/ui/loading-spinner/loading-spinner.component';
 
-type TelemetryContentPanelView = 'map' | 'events';
+type TelemetryContentPanelView = 'map' | 'events' | 'trips';
 type TelemetryEventsPanelView = 'timeline' | 'table';
 
 @Component({
   selector: 'app-device-telemetry-page',
   imports: [
-    ButtonDirective,
-    Card,
     DatePipe,
     DecimalPipe,
     Dialog,
@@ -44,8 +46,6 @@ type TelemetryEventsPanelView = 'timeline' | 'table';
     Message,
     ReactiveFormsModule,
     SelectModule,
-    TelemetryEventsTableComponent,
-    TelemetryEventsTimelineComponent,
     TelemetryMapComponent,
     TelemetryTripSummaryComponent,
     TelemetryTripsListComponent,
@@ -76,10 +76,14 @@ export class DeviceTelemetryPageComponent {
   protected readonly hasEvents = this.facade.hasEvents;
   protected readonly hasPositions = this.facade.hasPositions;
   protected readonly activePreset = signal<TelemetryRangePreset>('day');
-  protected readonly currentWindow = signal<TelemetryWindowSelection>(buildTelemetryPresetWindow('day'));
+  protected readonly currentWindow = signal<TelemetryWindowSelection>(
+    buildTelemetryPresetWindow('day'),
+  );
   protected readonly activeContentPanelView = signal<TelemetryContentPanelView>('map');
   protected readonly activeEventsPanelView = signal<TelemetryEventsPanelView>('timeline');
   protected readonly summaryDialogVisible = signal(false);
+  protected readonly eventDetailVisible = signal(false);
+  protected readonly selectedEvent = signal<DeviceEventDto | null>(null);
   protected readonly eventFilterControl = this.formBuilder.control('all', {
     validators: [Validators.required],
   });
@@ -111,7 +115,9 @@ export class DeviceTelemetryPageComponent {
       },
     ];
   });
-  protected readonly currentMapMarkers = computed<readonly TelemetryMapMarker[]>(() => this.summaryMarkers());
+  protected readonly currentMapMarkers = computed<readonly TelemetryMapMarker[]>(() =>
+    this.summaryMarkers(),
+  );
   protected readonly currentMapPathPoints = computed<readonly TelemetryMapMarker[]>(() => []);
   protected readonly tripMapMarkers = computed<readonly TelemetryMapMarker[]>(() => {
     const trip = this.selectedTrip();
@@ -139,6 +145,7 @@ export class DeviceTelemetryPageComponent {
       longitude: position.longitude,
       lastSeenAtUtc: position.receivedAtUtc,
       protocol: this.device()?.protocol ?? null,
+      ignitionOn: position.ignitionOn,
     }));
   });
   protected readonly fallbackRouteAvailable = computed(
@@ -174,6 +181,7 @@ export class DeviceTelemetryPageComponent {
       longitude: position.longitude,
       lastSeenAtUtc: position.receivedAtUtc,
       protocol: device.protocol,
+      ignitionOn: position.ignitionOn,
     }));
   });
   protected readonly fallbackRouteSummary = computed(() => {
@@ -192,11 +200,19 @@ export class DeviceTelemetryPageComponent {
       pointCount: positions.length,
       maxSpeedKmh: speeds.length > 0 ? Math.max(...speeds) : null,
       avgSpeedKmh:
-        speeds.length > 0 ? speeds.reduce((total, speed) => total + speed, 0) / speeds.length : null,
+        speeds.length > 0
+          ? speeds.reduce((total, speed) => total + speed, 0) / speeds.length
+          : null,
     };
   });
   protected readonly eventCodeOptions = computed(() => {
-    const distinctCodes = [...new Set(this.events().map((event) => event.eventCode).filter(Boolean))]
+    const distinctCodes = [
+      ...new Set(
+        this.events()
+          .map((event) => event.eventCode)
+          .filter(Boolean),
+      ),
+    ]
       .sort((left, right) => left.localeCompare(right))
       .map((code) => ({
         label: code,
@@ -237,7 +253,7 @@ export class DeviceTelemetryPageComponent {
       timeStyle: 'short',
     });
 
-    return `Ventana: ${formatter.format(new Date(window.fromUtc))} a ${formatter.format(new Date(window.toUtc))}`;
+    return `${formatter.format(new Date(window.fromUtc))} — ${formatter.format(new Date(window.toUtc))}`;
   });
   protected readonly tripWindowLabel = computed(() => {
     const window = this.currentWindow();
@@ -262,11 +278,46 @@ export class DeviceTelemetryPageComponent {
     return `Mostrando historial entre ${formatter.format(new Date(summary.startedAtUtc))} y ${formatter.format(new Date(summary.endedAtUtc))}.`;
   });
 
+  /** Computed que decide qué markers pasar al mapa fullscreen según el tab activo */
+  protected readonly fullscreenMapMarkers = computed<readonly TelemetryMapMarker[]>(() => {
+    const view = this.activeContentPanelView();
+
+    if (view === 'trips') {
+      if (this.selectedTrip()) {
+        return this.tripMapMarkers();
+      }
+      if (this.fallbackRouteAvailable()) {
+        return this.fallbackRouteMarkers();
+      }
+      return this.summaryMarkers();
+    }
+
+    return this.currentMapMarkers();
+  });
+
+  /** Computed que decide qué pathPoints pasar al mapa fullscreen según el tab activo */
+  protected readonly fullscreenMapPathPoints = computed<readonly TelemetryMapMarker[]>(() => {
+    const view = this.activeContentPanelView();
+
+    if (view === 'trips') {
+      if (this.selectedTrip()) {
+        return this.tripMapPathPoints();
+      }
+      if (this.fallbackRouteAvailable()) {
+        return this.fallbackRoutePathPoints();
+      }
+      return [];
+    }
+
+    return this.currentMapPathPoints();
+  });
+
   constructor() {
     combineLatest([this.route.paramMap, this.route.data])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([params, data]) => {
-        const telemetryContext = (data['telemetryContext'] as 'self' | 'admin' | undefined) ?? 'self';
+        const telemetryContext =
+          (data['telemetryContext'] as 'self' | 'admin' | undefined) ?? 'self';
         const context: TelemetryContext =
           telemetryContext === 'admin'
             ? {
@@ -342,8 +393,21 @@ export class DeviceTelemetryPageComponent {
     this.eventFilterControl.setValue('all');
   }
 
+  protected openEventDetail(event: DeviceEventDto): void {
+    this.selectedEvent.set(event);
+    this.eventDetailVisible.set(true);
+  }
+
+  protected closeEventDetail(): void {
+    this.eventDetailVisible.set(false);
+  }
+
   protected async retryLoad(): Promise<void> {
-    await this.facade.initialize(this.facade.context(), this.facade.imei() ?? '', this.currentWindow());
+    await this.facade.initialize(
+      this.facade.context(),
+      this.facade.imei() ?? '',
+      this.currentWindow(),
+    );
   }
 
   protected async goBack(): Promise<void> {
