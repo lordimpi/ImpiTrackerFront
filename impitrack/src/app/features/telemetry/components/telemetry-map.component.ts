@@ -137,12 +137,27 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
     const pathPoints = this.pathPoints();
     if (pathPoints.length > 1) {
       const segments = this.segmentByIgnition(pathPoints);
+      // Borde negro (dibujado primero, queda debajo)
+      for (const segment of segments) {
+        this.leaflet
+          .polyline(segment.coords, {
+            color: '#1a1a1a',
+            weight: 7,
+            opacity: 0.9,
+            lineCap: 'round',
+            lineJoin: 'round',
+          })
+          .addTo(this.markerLayer);
+      }
+      // Línea principal encima
       for (const segment of segments) {
         this.leaflet
           .polyline(segment.coords, {
             color: segment.color,
             weight: 4,
-            opacity: 0.8,
+            opacity: 1,
+            lineCap: 'round',
+            lineJoin: 'round',
           })
           .addTo(this.markerLayer);
       }
@@ -195,7 +210,7 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
 
     const segments: Array<{ coords: [number, number][]; color: string }> = [];
     const colorFor = (ignitionOn: boolean | undefined): string =>
-      ignitionOn === true ? '#77c9de' : '#aaaaaa';
+      ignitionOn === true ? '#f5c842' : '#aaaaaa';
 
     let currentColor = colorFor(points[0].ignitionOn);
     let currentCoords: [number, number][] = [[points[0].latitude, points[0].longitude]];

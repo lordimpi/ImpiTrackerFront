@@ -4,7 +4,18 @@ Frontend de IMPITrack construido con Angular 21, SSR y PrimeNG. Este repositorio
 
 ## Estado del producto
 
-IMPITrack ya no se describe como un MVP especulativo. La base actual corresponde a un producto operativo en evolucion post-MVP, con capacidades estables de autenticacion, gestion de dispositivos, administracion, observabilidad operativa y una expansion activa de experiencias de telemetria y monitoreo.
+IMPITrack es un producto operativo en evolucion post-MVP con capacidades estables de autenticacion, gestion de dispositivos, administracion, observabilidad operativa y experiencias de telemetria y monitoreo en expansion activa.
+
+La experiencia de usuario actual sigue un diseno inspirado en plataformas profesionales de monitoreo:
+
+- Shell unificado con icon-rail (64px colapsado, 220px en hover) para todos los roles.
+- Vista principal centrada en mapa fullscreen con panel derecho flotante (320px) para dispositivos, resumen rapido y tabs de Flota/Eventos/Recorridos.
+- Telemetria del dispositivo como mapa fullscreen con panel derecho de tabs (Info/Recorridos/Eventos).
+- Login enterprise con branding y metricas, sin textos de MVP.
+- Landing despues de login: `/app/map` (mapa como punto de entrada principal).
+- Tema oscuro con tokens CSS del PRD (accent verde, warn amarillo). Google Fonts Syne + Space Mono.
+- Polyline de recorridos en amarillo (#f5c842) con borde negro, segmentado por ignicion.
+- Paginas de admin con padding propio por pagina, no del shell.
 
 ## Stack principal
 
@@ -27,6 +38,7 @@ IMPITrack ya no se describe como un MVP especulativo. La base actual corresponde
 - `.docs/product-source-of-truth-prd.md`: fuente principal de narrativa, alcance y prioridades del producto.
 - `.docs/telemetry-release-status.md`: companion de release para interpretar que parte de telemetria esta liberada, en validacion activa o planificada.
 - `.docs/frontend-post-mvp-plan.md`: roadmap frontend posterior a la base operativa ya cerrada.
+- `.docs/user-views-reference.md`: referencia de vistas de usuario (pre-redesign, ver nota en el documento).
 
 ## Desarrollo local
 
@@ -64,7 +76,7 @@ npm run serve:ssr:impitrack
 
 - `src/app/core/`: auth, guards, interceptors, configuracion y layouts.
 - `src/app/shared/`: modelos, utilidades, validadores y bloques reutilizables de interfaz.
-- `src/app/features/`: `auth`, `dashboard`, `account`, `devices`, `admin-users`, `ops`, `telemetry`.
+- `src/app/features/`: `auth`, `dashboard`, `account`, `devices`, `admin-users`, `ops`, `telemetry`, `settings`.
 - `public/`: assets estaticos.
 
 ## Convenciones
@@ -79,6 +91,8 @@ npm run serve:ssr:impitrack
 ## Verificacion manual recomendada
 
 - Auth: registro, login, logout, recordar sesion, recuperacion y reset.
+- Mapa: vista fullscreen con panel derecho de dispositivos, navegacion a telemetria.
+- Telemetria: mapa fullscreen + panel derecho con tabs Info/Recorridos/Eventos.
 - Devices: listar, vincular y desvincular IMEI.
 - Admin: listado, detalle, cambio de plan y gestion de dispositivos.
 - Ops: `raw`, `errors`, `sessions` y `ports` con usuario `Admin`.

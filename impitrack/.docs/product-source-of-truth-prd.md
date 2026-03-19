@@ -377,7 +377,11 @@ For any release increment, documentation is only considered ready when:
 - separate technical diagnostics from end-user monitoring,
 - map and telemetry screens must explain device state quickly,
 - avoid inventing labels or statuses unsupported by backend truth,
-- prioritize scanning speed and confidence for operational users.
+- prioritize scanning speed and confidence for operational users,
+- unified icon-rail shell for all roles (same visual structure, role-filtered nav items),
+- fullscreen map as the primary landing and monitoring surface (`/app/map`),
+- floating right panel for device context, fleet summary, and tab-based detail,
+- dark theme with PRD-defined CSS tokens, Syne + Space Mono fonts.
 
 ### 14.2 Frontend architecture principles
 

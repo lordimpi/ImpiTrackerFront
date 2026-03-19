@@ -1,5 +1,23 @@
 # IMPITrack -- User Views Reference
 
+> **IMPORTANT -- PRE-REDESIGN DOCUMENT**
+>
+> This document reflects the state of the UI BEFORE the UX redesign completed in March 2026.
+> The current UI has changed significantly:
+>
+> - Shell replaced by a unified icon-rail (64px collapsed, 220px on hover) for all roles.
+> - Landing changed from `/app/dashboard` to `/app/map` (fullscreen map).
+> - Map page is now fullscreen with a floating right panel (320px) for devices and fleet tabs.
+> - Device telemetry page restructured as fullscreen map + right panel with Info/Recorridos/Eventos tabs.
+> - Login redesigned as enterprise layout with branding panel (no MVP copy).
+> - Dark theme with PRD CSS tokens (accent green, warn yellow). Syne + Space Mono fonts.
+> - Polyline colors changed from cyan/gray to yellow (#f5c842) with black border.
+> - Admin pages use per-page padding instead of shell padding.
+>
+> The structural detail below (components, models, API contracts, data flow) remains largely accurate,
+> but layout descriptions, navigation items, visual copy, and shell structure are outdated.
+> Use this document as a reference for component behavior and data contracts, not for current visual layout.
+
 > **Scope:** Role `user` (no Admin, no Ops). All views accessible to a regular authenticated user.
 > **Stack:** Angular 21 + SSR, PrimeNG, Leaflet, Angular Signals, Reactive Forms.
 > **Generated from:** actual `.html` and `.ts` source files as of March 2026.
