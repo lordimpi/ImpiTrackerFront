@@ -1,12 +1,19 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .telemetry-map-shell {
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .telemetry-map {
-  min-height: 24rem;
-  border-radius: 1.1rem;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  border: 1px solid var(--line-soft);
   background:
     linear-gradient(180deg, rgba(7, 19, 26, 0.82), rgba(7, 16, 23, 0.92)),
     radial-gradient(circle at top, rgba(119, 201, 222, 0.16), transparent 40%);

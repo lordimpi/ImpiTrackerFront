@@ -1,77 +1,33 @@
-<div class="app-shell" [class.app-shell--sidebar-open]="sidebarOpen()">
-  @if (showBackdrop()) {
-    <button
-      type="button"
-      class="app-shell__backdrop"
-      aria-label="Cerrar navegacion"
-      (click)="closeSidebar()"
-    ></button>
-  }
-
-  <aside
-    class="rail"
-    aria-label="Navegacion principal"
-    [class.rail--open]="sidebarOpen()"
-    [class.rail--mobile]="mobileViewport()"
-  >
-    <div class="rail__brand">
-      <span class="rail__eyebrow">shell operativo</span>
-      <strong>IMPITrack</strong>
-      <p>Vistas de telemetria listas para crecer por feature, no por parches.</p>
+<div class="app-shell">
+  <aside class="icon-rail">
+    <div class="icon-rail__logo">
+      <i class="pi pi-map-marker"></i>
     </div>
-
-    <nav class="rail__nav">
+    <nav class="icon-rail__nav">
       @for (item of visibleItems(); track item.route) {
         <a
+          class="icon-rail__item"
           [routerLink]="item.route"
-          routerLinkActive="rail__link--active"
-          class="rail__link"
-          (click)="closeSidebar()"
+          routerLinkActive="icon-rail__item--active"
+          [attr.aria-label]="item.label"
         >
           <i [class]="item.icon"></i>
-          <span>{{ item.label }}</span>
+          <span class="icon-rail__label">{{ item.label }}</span>
         </a>
       }
     </nav>
-
-    <div class="rail__status">
-      <span class="rail__eyebrow">roles</span>
-      <div class="rail__tags">
-        @for (role of roles(); track role) {
-          <p-tag [value]="role"></p-tag>
-        }
-      </div>
+    <div class="icon-rail__spacer"></div>
+    <div class="icon-rail__footer">
+      <div class="icon-rail__avatar">{{ displayName().charAt(0).toUpperCase() }}</div>
+      <span class="icon-rail__user-name">{{ displayName() }}</span>
+      <button class="icon-rail__logout" (click)="signOut()" aria-label="Cerrar sesión">
+        <i class="pi pi-sign-out"></i>
+      </button>
     </div>
   </aside>
 
   <div class="canvas">
-    <header class="canvas__header">
-      <div class="canvas__heading">
-        <button
-          pButton
-          type="button"
-          icon="pi pi-bars"
-          severity="secondary"
-          class="canvas__menu-toggle"
-          aria-label="Alternar menu lateral"
-          (click)="toggleSidebar()"
-        ></button>
-      </div>
-
-      <div class="canvas__actions">
-        <strong class="canvas__display-name">{{ displayName() }}</strong>
-        <button
-          pButton
-          type="button"
-          severity="secondary"
-          icon="pi pi-sign-out"
-          aria-label="Cerrar sesion"
-          (click)="signOut()"
-        ></button>
-      </div>
-    </header>
-
-    <main class="canvas__content">
+    <main class="canvas__content" [class.canvas__content--fullscreen]="!isAdminShell()">
       <router-outlet />
     </main>
   </div>

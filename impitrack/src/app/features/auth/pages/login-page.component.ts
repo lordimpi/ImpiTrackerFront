@@ -53,7 +53,7 @@ export class LoginPageComponent {
     try {
       const { rememberSession, ...credentials } = this.form.getRawValue();
       await this.authFacade.login(credentials, rememberSession);
-      await this.router.navigate(['/app/dashboard']);
+      await this.router.navigate(['/app/map']);
     } catch (error) {
       const apiError = normalizeApiError(error);
       this.submitError.set(

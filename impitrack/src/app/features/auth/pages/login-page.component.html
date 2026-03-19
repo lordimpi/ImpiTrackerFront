@@ -1,9 +1,7 @@
 <div class="app-loading-region auth-card-shell" [attr.aria-busy]="pending()">
   <p-card class="auth-card">
-    <ng-template pTemplate="title">Ingresa al tablero operativo</ng-template>
-    <ng-template pTemplate="subtitle">
-      Usa el flujo real de sesion con JWT, refresh token y arranque seguro para SSR.
-    </ng-template>
+    <ng-template pTemplate="title">Iniciar sesión</ng-template>
+    <ng-template pTemplate="subtitle"> Accede a tu panel de monitoreo GPS. </ng-template>
 
     <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
       <label class="field">

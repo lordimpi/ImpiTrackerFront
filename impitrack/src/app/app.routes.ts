@@ -9,7 +9,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'app/dashboard',
+    redirectTo: 'app/map',
   },
   {
     path: 'auth',
@@ -32,10 +32,14 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'dashboard',
+        redirectTo: 'map',
       },
       {
         path: 'dashboard',
+        redirectTo: 'map',
+      },
+      {
+        path: 'dashboard-legacy',
         loadChildren: () =>
           import('./features/dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
       },
@@ -94,6 +98,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'app/dashboard',
+    redirectTo: 'app/map',
   },
 ];

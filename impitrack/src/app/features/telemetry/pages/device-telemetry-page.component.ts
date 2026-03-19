@@ -11,19 +11,16 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest } from 'rxjs';
-import { ButtonDirective } from 'primeng/button';
-import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { DeviceTelemetryFacade } from '../application/device-telemetry.facade';
-import { TelemetryEventsTableComponent } from '../components/telemetry-events-table.component';
-import { TelemetryEventsTimelineComponent } from '../components/telemetry-events-timeline.component';
 import { TelemetryMapComponent } from '../components/telemetry-map.component';
 import { TelemetryTripSummaryComponent } from '../components/telemetry-trip-summary.component';
 import { TelemetryTripsListComponent } from '../components/telemetry-trips-list.component';
 import {
+  DeviceEventDto,
   TelemetryContext,
   TelemetryMapMarker,
   TelemetryRangePreset,
@@ -35,14 +32,12 @@ import {
 } from '../models/telemetry.model';
 import { LoadingSpinnerComponent } from '../../../shared/ui/loading-spinner/loading-spinner.component';
 
-type TelemetryContentPanelView = 'map' | 'events';
+type TelemetryContentPanelView = 'map' | 'events' | 'trips';
 type TelemetryEventsPanelView = 'timeline' | 'table';
 
 @Component({
   selector: 'app-device-telemetry-page',
   imports: [
-    ButtonDirective,
-    Card,
     DatePipe,
     DecimalPipe,
     Dialog,
@@ -51,8 +46,6 @@ type TelemetryEventsPanelView = 'timeline' | 'table';
     Message,
     ReactiveFormsModule,
     SelectModule,
-    TelemetryEventsTableComponent,
-    TelemetryEventsTimelineComponent,
     TelemetryMapComponent,
     TelemetryTripSummaryComponent,
     TelemetryTripsListComponent,
@@ -89,6 +82,8 @@ export class DeviceTelemetryPageComponent {
   protected readonly activeContentPanelView = signal<TelemetryContentPanelView>('map');
   protected readonly activeEventsPanelView = signal<TelemetryEventsPanelView>('timeline');
   protected readonly summaryDialogVisible = signal(false);
+  protected readonly eventDetailVisible = signal(false);
+  protected readonly selectedEvent = signal<DeviceEventDto | null>(null);
   protected readonly eventFilterControl = this.formBuilder.control('all', {
     validators: [Validators.required],
   });
@@ -258,7 +253,7 @@ export class DeviceTelemetryPageComponent {
       timeStyle: 'short',
     });
 
-    return `Ventana: ${formatter.format(new Date(window.fromUtc))} a ${formatter.format(new Date(window.toUtc))}`;
+    return `${formatter.format(new Date(window.fromUtc))} — ${formatter.format(new Date(window.toUtc))}`;
   });
   protected readonly tripWindowLabel = computed(() => {
     const window = this.currentWindow();
@@ -281,6 +276,40 @@ export class DeviceTelemetryPageComponent {
     });
 
     return `Mostrando historial entre ${formatter.format(new Date(summary.startedAtUtc))} y ${formatter.format(new Date(summary.endedAtUtc))}.`;
+  });
+
+  /** Computed que decide qué markers pasar al mapa fullscreen según el tab activo */
+  protected readonly fullscreenMapMarkers = computed<readonly TelemetryMapMarker[]>(() => {
+    const view = this.activeContentPanelView();
+
+    if (view === 'trips') {
+      if (this.selectedTrip()) {
+        return this.tripMapMarkers();
+      }
+      if (this.fallbackRouteAvailable()) {
+        return this.fallbackRouteMarkers();
+      }
+      return this.summaryMarkers();
+    }
+
+    return this.currentMapMarkers();
+  });
+
+  /** Computed que decide qué pathPoints pasar al mapa fullscreen según el tab activo */
+  protected readonly fullscreenMapPathPoints = computed<readonly TelemetryMapMarker[]>(() => {
+    const view = this.activeContentPanelView();
+
+    if (view === 'trips') {
+      if (this.selectedTrip()) {
+        return this.tripMapPathPoints();
+      }
+      if (this.fallbackRouteAvailable()) {
+        return this.fallbackRoutePathPoints();
+      }
+      return [];
+    }
+
+    return this.currentMapPathPoints();
   });
 
   constructor() {
@@ -362,6 +391,15 @@ export class DeviceTelemetryPageComponent {
 
   protected resetEventFilter(): void {
     this.eventFilterControl.setValue('all');
+  }
+
+  protected openEventDetail(event: DeviceEventDto): void {
+    this.selectedEvent.set(event);
+    this.eventDetailVisible.set(true);
+  }
+
+  protected closeEventDetail(): void {
+    this.eventDetailVisible.set(false);
   }
 
   protected async retryLoad(): Promise<void> {

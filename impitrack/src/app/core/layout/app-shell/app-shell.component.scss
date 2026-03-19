@@ -171,6 +171,13 @@
   padding: 1.5rem 1.75rem 2rem;
 }
 
+.canvas__content--fullscreen {
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 @media (max-width: 980px) {
   .rail {
     position: fixed;
@@ -193,5 +200,185 @@
 
   .canvas__actions {
     width: 100%;
+  }
+}
+
+/* ── Icon Rail (user shell) ── */
+
+.app-shell--user {
+  background: var(--bg-base);
+}
+
+.icon-rail {
+  width: var(--sidebar-w, 64px);
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 4px;
+  z-index: 100;
+  flex-shrink: 0;
+  transition: width 0.25s ease;
+  overflow: hidden;
+  min-height: 100dvh;
+}
+
+.icon-rail:hover {
+  width: var(--sidebar-expanded, 220px);
+}
+
+.icon-rail__logo {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--accent), #00b4d8);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 20px;
+  color: white;
+  font-size: 1rem;
+}
+
+.icon-rail__nav {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.icon-rail__item {
+  width: 100%;
+  height: 44px;
+  border-radius: var(--radius-sm, 8px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+
+  i {
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
+
+  &--active {
+    background: var(--accent-dim);
+    color: var(--accent);
+
+    i {
+      color: var(--accent);
+    }
+  }
+}
+
+.icon-rail__label {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+
+  .icon-rail:hover & {
+    opacity: 1;
+  }
+}
+
+.icon-rail__spacer {
+  flex: 1;
+}
+
+.icon-rail__footer {
+  width: calc(100% - 16px);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm, 8px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.icon-rail__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: white;
+}
+
+.icon-rail__user-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  opacity: 0;
+  transition: opacity 0.2s;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .icon-rail:hover & {
+    opacity: 1;
+  }
+}
+
+.icon-rail__logout {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    color 0.15s;
+  flex-shrink: 0;
+
+  .icon-rail:hover & {
+    opacity: 1;
+  }
+
+  &:hover {
+    color: var(--color-danger, #ef4444);
+  }
+}
+
+@media (max-width: 980px) {
+  .icon-rail {
+    width: var(--sidebar-w, 64px);
+
+    &:hover {
+      width: var(--sidebar-w, 64px);
+    }
+  }
+
+  .icon-rail__label,
+  .icon-rail__user-name {
+    display: none;
   }
 }
