@@ -1,102 +1,85 @@
 # IMPITrack Frontend
 
-Frontend de IMPITrack construido con Angular 21, SSR y PrimeNG. Este repositorio contiene solo la aplicacion web y consume la API de IMPITrack; no incluye la logica de negocio del backend.
+Role: index
+Status: active
+Owner: frontend-maintainers
+Last Reviewed: 2026-03-19
 
-## Estado del producto
+This README is the stable entry point for frontend project documentation.
 
-IMPITrack es un producto operativo en evolucion post-MVP con capacidades estables de autenticacion, gestion de dispositivos, administracion, observabilidad operativa y experiencias de telemetria y monitoreo en expansion activa.
+## Start Here
 
-La experiencia de usuario actual sigue un diseno inspirado en plataformas profesionales de monitoreo:
+- Product source of truth: [`.docs/product-source-of-truth-prd.md`](.docs/product-source-of-truth-prd.md)
+- Telemetry release status: [`.docs/telemetry-release-status.md`](.docs/telemetry-release-status.md)
+- User experience redesign PRD: [`.docs/user-redesign-prd.md`](.docs/user-redesign-prd.md)
+- User views reference (pre-redesign): [`.docs/user-views-reference.md`](.docs/user-views-reference.md)
+- Frontend roadmap: [`.docs/frontend-post-mvp-plan.md`](.docs/frontend-post-mvp-plan.md)
 
-- Shell unificado con icon-rail (64px colapsado, 220px en hover) para todos los roles.
-- Vista principal centrada en mapa fullscreen con panel derecho flotante (320px) para dispositivos, resumen rapido y tabs de Flota/Eventos/Recorridos.
-- Telemetria del dispositivo como mapa fullscreen con panel derecho de tabs (Info/Recorridos/Eventos).
-- Login enterprise con branding y metricas, sin textos de MVP.
-- Landing despues de login: `/app/map` (mapa como punto de entrada principal).
-- Tema oscuro con tokens CSS del PRD (accent verde, warn amarillo). Google Fonts Syne + Space Mono.
-- Polyline de recorridos en amarillo (#f5c842) con borde negro, segmentado por ignicion.
-- Paginas de admin con padding propio por pagina, no del shell.
+## Current Project Snapshot
 
-## Stack principal
+- Frontend-only repository. Consumes the IMPITrack backend API; no business logic lives here.
+- Angular 21 with SSR, standalone components, PrimeNG for UI, Leaflet for maps.
+- Feature-oriented architecture: `core/`, `shared/`, `features/`.
+- Unified icon-rail shell for all roles. Map-first experience for users. Admin pages manage their own layout.
 
-- Angular 21 con componentes standalone.
-- SSR habilitado para navegador y servidor.
-- PrimeNG como base del sistema de UI.
-- Leaflet para experiencias de mapa y monitoreo geoespacial.
-- RxJS y Angular Signals segun la necesidad del flujo.
-- SCSS y arquitectura frontend orientada por features.
+## Architecture
 
-## Enfoque arquitectonico
+### Feature Structure
 
-- Estructura por `core`, `shared` y `features` para separar preocupaciones globales, reutilizables y de dominio.
-- Features organizadas con capas como `pages`, `components`, `application`, `data-access` y `models` cuando aporta claridad.
-- Compatibilidad SSR como restriccion de base, evitando acoplar la UI a APIs exclusivas del navegador.
-- Integracion desacoplada del backend mediante contratos existentes y mapeos de UI cuando hace falta.
+```
+src/app/
+  core/          auth, guards, interceptors, layouts
+  shared/        reusable UI blocks, pipes, models, validators
+  features/
+    auth/        login, register, recover, reset
+    dashboard/   redirects to map
+    telemetry/   map monitoring, device telemetry, trips, events
+    devices/     user device management (bind/unbind)
+    account/     user profile and plan info
+    admin-users/ admin user management
+    ops/         operational diagnostics (raw, errors, sessions, ports)
+```
 
-## Documentacion clave
+### Key Capabilities
 
-- `.docs/product-source-of-truth-prd.md`: fuente principal de narrativa, alcance y prioridades del producto.
-- `.docs/telemetry-release-status.md`: companion de release para interpretar que parte de telemetria esta liberada, en validacion activa o planificada.
-- `.docs/frontend-post-mvp-plan.md`: roadmap frontend posterior a la base operativa ya cerrada.
-- `.docs/user-views-reference.md`: referencia de vistas de usuario (pre-redesign, ver nota en el documento).
+| Area      | Description                                                        |
+| --------- | ------------------------------------------------------------------ |
+| Auth      | JWT + refresh token, register, recover, reset, remember session    |
+| Map       | Fullscreen with device panel, polling 30s, last known position     |
+| Telemetry | Per-device: trips, events, position history, ignition segmentation |
+| Devices   | Bind/unbind by IMEI, plan usage visibility                         |
+| Admin     | User list, detail, plan management, device oversight               |
+| Ops       | Raw packets, parse errors, active sessions, TCP ports              |
 
-## Desarrollo local
-
-Instala dependencias:
+## Development
 
 ```bash
 npm install
+npm start          # http://localhost:4200
 ```
 
-Levanta el frontend:
+Expected backend API: `https://localhost:54124`
 
-```bash
-npm start
-```
+## Commands
 
-La aplicacion queda disponible en `http://localhost:4200/`.
+| Command                       | Purpose               |
+| ----------------------------- | --------------------- |
+| `npm start`                   | Dev server            |
+| `npm run build`               | Production SSR build  |
+| `npm run watch`               | Incremental dev build |
+| `npm test -- --watch=false`   | Unit tests            |
+| `npm run serve:ssr:impitrack` | Serve SSR build       |
 
-La API de desarrollo esperada por el frontend es:
+## Conventions
 
-```text
-https://localhost:54124
-```
+- Code in English. UI text in Spanish.
+- Separate `.ts`, `.html`, `.scss` files per component.
+- Feature-oriented architecture with `pages/`, `components/`, `application/`, `data-access/`, `models/`.
+- SSR compatibility required for all changes.
+- PrimeNG as UI foundation.
 
-## Comandos principales
+## Documentation Rules
 
-```bash
-npm start
-npm run build
-npm run watch
-npm test -- --watch=false
-npm run serve:ssr:impitrack
-```
-
-## Estructura del proyecto
-
-- `src/app/core/`: auth, guards, interceptors, configuracion y layouts.
-- `src/app/shared/`: modelos, utilidades, validadores y bloques reutilizables de interfaz.
-- `src/app/features/`: `auth`, `dashboard`, `account`, `devices`, `admin-users`, `ops`, `telemetry`, `settings`.
-- `public/`: assets estaticos.
-
-## Convenciones
-
-- Codigo en ingles.
-- Documentacion y textos visibles en espanol.
-- Componentes con archivos separados `.ts`, `.html` y `.scss`.
-- Arquitectura orientada por features.
-- Compatibilidad SSR obligatoria.
-- PrimeNG como base de UI.
-
-## Verificacion manual recomendada
-
-- Auth: registro, login, logout, recordar sesion, recuperacion y reset.
-- Mapa: vista fullscreen con panel derecho de dispositivos, navegacion a telemetria.
-- Telemetria: mapa fullscreen + panel derecho con tabs Info/Recorridos/Eventos.
-- Devices: listar, vincular y desvincular IMEI.
-- Admin: listado, detalle, cambio de plan y gestion de dispositivos.
-- Ops: `raw`, `errors`, `sessions` y `ports` con usuario `Admin`.
-
-## Nota tecnica
-
-El budget inicial del bundle de produccion se ajusto a `760 kB` para reflejar mejor el tamano actual del shell SSR + PrimeNG. Sigue siendo un pendiente de optimizacion, pero no redefine la narrativa del producto ni su baseline operativo actual.
+- Put product decisions, scope and priorities in [`.docs/product-source-of-truth-prd.md`](.docs/product-source-of-truth-prd.md).
+- Keep `README.md` short. If it starts becoming a wiki, move detail to `.docs/` and link it.
+- Historical or superseded docs must say so explicitly and point to their canonical replacement.
