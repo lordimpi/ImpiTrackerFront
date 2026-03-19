@@ -11,9 +11,7 @@ This README is the stable entry point for frontend project documentation.
 
 - Product source of truth: [`.docs/product-source-of-truth-prd.md`](.docs/product-source-of-truth-prd.md)
 - Telemetry release status: [`.docs/telemetry-release-status.md`](.docs/telemetry-release-status.md)
-- User experience redesign PRD: [`.docs/user-redesign-prd.md`](.docs/user-redesign-prd.md)
-- User views reference (pre-redesign): [`.docs/user-views-reference.md`](.docs/user-views-reference.md)
-- Frontend roadmap: [`.docs/frontend-post-mvp-plan.md`](.docs/frontend-post-mvp-plan.md)
+- User experience PRD: [`.docs/user-redesign-prd.md`](.docs/user-redesign-prd.md)
 
 ## Current Project Snapshot
 
