@@ -230,17 +230,35 @@
 }
 
 .icon-rail__logo {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, var(--accent), #00b4d8);
-  border-radius: 10px;
+  width: 100%;
+  padding: 0 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   margin-bottom: 20px;
-  color: white;
-  font-size: 1rem;
+}
+
+.icon-rail__logo-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: block;
+
+  .icon-rail:hover & {
+    display: none;
+  }
+}
+
+.icon-rail__logo-full {
+  width: 100%;
+  max-height: 44px;
+  object-fit: contain;
+  display: none;
+
+  .icon-rail:hover & {
+    display: block;
+  }
 }
 
 .icon-rail__nav {
