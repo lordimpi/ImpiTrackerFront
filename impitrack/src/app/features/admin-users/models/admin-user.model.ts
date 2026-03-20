@@ -61,6 +61,12 @@ export interface BindAdminDeviceResultDto {
   readonly deviceId?: string | null;
 }
 
+export interface AdminUserDevicesQuery {
+  readonly page: number;
+  readonly pageSize: number;
+  readonly search?: string;
+}
+
 export type AdminUsersSortField =
   | 'email'
   | 'fullName'

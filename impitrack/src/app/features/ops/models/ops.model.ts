@@ -48,19 +48,23 @@ export interface PortIngestionSnapshotDto {
 }
 
 export interface OpsRawQuery {
+  readonly page: number;
+  readonly pageSize: number;
   readonly imei?: string;
-  readonly limit: number;
 }
 
 export type OpsErrorGroupBy = 'errorCode' | 'protocol' | 'port';
 
 export interface OpsErrorsQuery {
+  readonly page: number;
+  readonly pageSize: number;
   readonly from: string;
   readonly to: string;
   readonly groupBy: OpsErrorGroupBy;
-  readonly limit: number;
 }
 
 export interface OpsSessionsQuery {
+  readonly page: number;
+  readonly pageSize: number;
   readonly port?: number;
 }

@@ -78,7 +78,7 @@
             </div>
           } @else {
             <div class="tp-header__imei-row">
-              <div class="tp-header__imei">{{ device()?.alias || device()?.imei ?? 'Cargando...' }}</div>
+              <div class="tp-header__imei">{{ (device()?.alias || device()?.imei) ?? 'Cargando...' }}</div>
               @if (device()) {
                 <button class="tp-alias-trigger" (click)="openAliasEdit()" aria-label="Editar nombre">
                   <i class="pi pi-pencil"></i>

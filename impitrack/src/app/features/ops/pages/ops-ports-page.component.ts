@@ -7,6 +7,7 @@ import {
   PLATFORM_ID,
   inject,
 } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Message } from 'primeng/message';
@@ -17,7 +18,7 @@ import { PortIngestionSnapshotDto } from '../models/ops.model';
 
 @Component({
   selector: 'app-ops-ports-page',
-  imports: [ButtonDirective, Card, LoadingSpinnerComponent, Message, Tag],
+  imports: [ButtonDirective, Card, LoadingSpinnerComponent, Message, RouterLink, RouterLinkActive, Tag],
   templateUrl: './ops-ports-page.component.html',
   styleUrl: './ops-ports-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

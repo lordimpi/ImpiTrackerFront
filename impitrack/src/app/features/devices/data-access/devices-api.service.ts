@@ -1,12 +1,14 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { APP_CONFIG } from '../../../core/config/app-config';
 import { ApiResponse } from '../../../shared/models/api-response.model';
+import { PagedResult } from '../../admin-users/models/admin-user.model';
 import {
   BindDeviceRequest,
   BindDeviceResultDto,
   UserDeviceBindingDto,
+  UserDevicesQuery,
 } from '../models/user-device.model';
 
 @Injectable({
@@ -17,10 +19,20 @@ export class DevicesApiService {
   private readonly appConfig = inject(APP_CONFIG);
   private readonly baseUrl = `${this.appConfig.apiBaseUrl}/api/me/devices`;
 
-  getDevices(): Observable<ApiResponse<readonly UserDeviceBindingDto[]> | readonly UserDeviceBindingDto[]> {
-    return this.httpClient.get<ApiResponse<readonly UserDeviceBindingDto[]> | readonly UserDeviceBindingDto[]>(
-      this.baseUrl,
-    );
+  getDevices(
+    query: UserDevicesQuery,
+  ): Observable<ApiResponse<PagedResult<UserDeviceBindingDto>> | PagedResult<UserDeviceBindingDto>> {
+    let params = new HttpParams()
+      .set('page', query.page)
+      .set('pageSize', query.pageSize);
+
+    if (query.search) {
+      params = params.set('search', query.search);
+    }
+
+    return this.httpClient.get<
+      ApiResponse<PagedResult<UserDeviceBindingDto>> | PagedResult<UserDeviceBindingDto>
+    >(this.baseUrl, { params });
   }
 
   bindDevice(

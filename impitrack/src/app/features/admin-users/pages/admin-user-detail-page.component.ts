@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -8,6 +9,7 @@ import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { Paginator } from 'primeng/paginator';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -26,9 +28,11 @@ import {
     Card,
     DatePipe,
     Dialog,
+    FormsModule,
     InputText,
     LoadingSpinnerComponent,
     Message,
+    Paginator,
     ReactiveFormsModule,
     RouterLink,
     SelectModule,
@@ -63,6 +67,16 @@ export class AdminUserDetailPageComponent {
   protected readonly featureError = this.detailFacade.errorMessage;
   protected readonly notFound = this.detailFacade.notFound;
   protected readonly hasDevices = this.detailFacade.hasDevices;
+  protected readonly devicesQuery = this.detailFacade.devicesQuery;
+  protected readonly totalDevices = this.detailFacade.totalDevices;
+  protected readonly totalDevicePages = this.detailFacade.totalDevicePages;
+  protected readonly pageSizeOptions = [
+    { label: '10', value: 10 },
+    { label: '20', value: 20 },
+    { label: '50', value: 50 },
+    { label: '100', value: 100 },
+  ];
+  protected readonly searchValue = signal('');
   protected readonly planErrorMessage = signal<string | null>(null);
   protected readonly bindErrorMessage = signal<string | null>(null);
   protected readonly planUsageLabel = computed(() => {
@@ -168,6 +182,27 @@ export class AdminUserDetailPageComponent {
         void this.handleUnbind(imei);
       },
     });
+  }
+
+  protected submitSearch(): void {
+    const search = this.searchValue().trim() || undefined;
+    void this.detailFacade.changeDevicesPage(1, this.devicesQuery().pageSize, search);
+  }
+
+  protected clearSearch(): void {
+    this.searchValue.set('');
+    void this.detailFacade.changeDevicesPage(1, this.devicesQuery().pageSize);
+  }
+
+  protected changeDevicesPage(event: { page?: number; rows?: number }): void {
+    const query = this.devicesQuery();
+    const search = this.searchValue().trim() || undefined;
+    void this.detailFacade.changeDevicesPage((event.page ?? 0) + 1, event.rows ?? query.pageSize, search);
+  }
+
+  protected changePageSize(pageSize: number): void {
+    const search = this.searchValue().trim() || undefined;
+    void this.detailFacade.changeDevicesPage(1, pageSize, search);
   }
 
   protected isUnbinding(imei: string): boolean {

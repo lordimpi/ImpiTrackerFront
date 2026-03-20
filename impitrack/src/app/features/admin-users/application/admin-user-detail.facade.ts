@@ -6,6 +6,7 @@ import {
   AdminPlanDto,
   AdminUserDetailDto,
   AdminUserDeviceDto,
+  AdminUserDevicesQuery,
   BindAdminDeviceResultDto,
 } from '../models/admin-user.model';
 
@@ -13,6 +14,9 @@ interface AdminUserDetailState {
   readonly userId: string | null;
   readonly user: AdminUserDetailDto | null;
   readonly devices: readonly AdminUserDeviceDto[];
+  readonly devicesQuery: AdminUserDevicesQuery;
+  readonly totalDevices: number;
+  readonly totalDevicePages: number;
   readonly plans: readonly AdminPlanDto[];
   readonly pendingInitialLoad: boolean;
   readonly pendingPlanChange: boolean;
@@ -36,6 +40,9 @@ export class AdminUserDetailFacade {
     userId: null,
     user: null,
     devices: [],
+    devicesQuery: { page: 1, pageSize: 10 },
+    totalDevices: 0,
+    totalDevicePages: 0,
     plans: [],
     pendingInitialLoad: false,
     pendingPlanChange: false,
@@ -59,7 +66,10 @@ export class AdminUserDetailFacade {
   readonly bindDeviceModalVisible = computed(() => this.state().bindDeviceModalVisible);
   readonly errorMessage = computed(() => this.state().errorMessage);
   readonly notFound = computed(() => this.state().notFound);
-  readonly hasDevices = computed(() => this.devices().length > 0);
+  readonly devicesQuery = computed(() => this.state().devicesQuery);
+  readonly totalDevices = computed(() => this.state().totalDevices);
+  readonly totalDevicePages = computed(() => this.state().totalDevicePages);
+  readonly hasDevices = computed(() => this.state().totalDevices > 0 || this.devices().length > 0);
 
   async initialize(userId: string): Promise<void> {
     if (!userId.trim()) {
@@ -79,15 +89,19 @@ export class AdminUserDetailFacade {
     });
 
     try {
+      const devicesQuery = this.state().devicesQuery;
       const [userResponse, devicesResponse, plansResponse] = await Promise.all([
         firstValueFrom(this.adminUsersApi.getUserSummary(userId)),
-        firstValueFrom(this.adminUsersApi.getUserDevices(userId)),
+        firstValueFrom(this.adminUsersApi.getUserDevices(userId, devicesQuery)),
         firstValueFrom(this.adminUsersApi.getPlans()),
       ]);
 
+      const pagedDevices = unwrapApiResponse(devicesResponse);
       this.patchState({
         user: unwrapApiResponse(userResponse),
-        devices: this.sortDevices(unwrapApiResponse(devicesResponse)),
+        devices: pagedDevices.items,
+        totalDevices: pagedDevices.totalItems,
+        totalDevicePages: pagedDevices.totalPages,
         plans: unwrapApiResponse(plansResponse),
       });
     } catch (error) {
@@ -223,20 +237,45 @@ export class AdminUserDetailFacade {
     await this.initialize(userId);
   }
 
+  async changeDevicesPage(page: number, pageSize: number, search?: string): Promise<void> {
+    const userId = this.userId();
+    if (!userId) {
+      return;
+    }
+
+    const devicesQuery: AdminUserDevicesQuery = { page, pageSize, search };
+    this.patchState({ devicesQuery });
+
+    const devicesResponse = await firstValueFrom(
+      this.adminUsersApi.getUserDevices(userId, devicesQuery),
+    );
+    const pagedDevices = unwrapApiResponse(devicesResponse);
+
+    this.patchState({
+      devices: pagedDevices.items,
+      totalDevices: pagedDevices.totalItems,
+      totalDevicePages: pagedDevices.totalPages,
+    });
+  }
+
   private async refreshUserData(): Promise<void> {
     const userId = this.userId();
     if (!userId) {
       return;
     }
 
+    const devicesQuery = this.state().devicesQuery;
     const [userResponse, devicesResponse] = await Promise.all([
       firstValueFrom(this.adminUsersApi.getUserSummary(userId)),
-      firstValueFrom(this.adminUsersApi.getUserDevices(userId)),
+      firstValueFrom(this.adminUsersApi.getUserDevices(userId, devicesQuery)),
     ]);
 
+    const pagedDevices = unwrapApiResponse(devicesResponse);
     this.patchState({
       user: unwrapApiResponse(userResponse),
-      devices: this.sortDevices(unwrapApiResponse(devicesResponse)),
+      devices: pagedDevices.items,
+      totalDevices: pagedDevices.totalItems,
+      totalDevicePages: pagedDevices.totalPages,
       errorMessage: null,
       notFound: false,
     });
@@ -244,10 +283,6 @@ export class AdminUserDetailFacade {
 
   private resolveBindOutcome(result: BindAdminDeviceResultDto): AdminBindDeviceOutcome {
     return result.status === 2 ? 'already-bound' : 'bound';
-  }
-
-  private sortDevices(devices: readonly AdminUserDeviceDto[]): readonly AdminUserDeviceDto[] {
-    return [...devices].sort((left, right) => right.boundAtUtc.localeCompare(left.boundAtUtc));
   }
 
   private handleLoadError(error: unknown): void {

@@ -7,6 +7,7 @@ import {
   AdminPlanDto,
   AdminUserDetailDto,
   AdminUserDeviceDto,
+  AdminUserDevicesQuery,
   AdminUserListItemDto,
   AdminUserListQuery,
   BindAdminDeviceRequest,
@@ -64,10 +65,19 @@ export class AdminUsersApiService {
 
   getUserDevices(
     userId: string,
-  ): Observable<ApiResponse<readonly AdminUserDeviceDto[]> | readonly AdminUserDeviceDto[]> {
+    query: AdminUserDevicesQuery,
+  ): Observable<ApiResponse<PagedResult<AdminUserDeviceDto>> | PagedResult<AdminUserDeviceDto>> {
+    let params = new HttpParams()
+      .set('page', query.page)
+      .set('pageSize', query.pageSize);
+
+    if (query.search) {
+      params = params.set('search', query.search);
+    }
+
     return this.httpClient.get<
-      ApiResponse<readonly AdminUserDeviceDto[]> | readonly AdminUserDeviceDto[]
-    >(`${this.usersBaseUrl}/${userId}/devices`);
+      ApiResponse<PagedResult<AdminUserDeviceDto>> | PagedResult<AdminUserDeviceDto>
+    >(`${this.usersBaseUrl}/${userId}/devices`, { params });
   }
 
   setUserPlan(

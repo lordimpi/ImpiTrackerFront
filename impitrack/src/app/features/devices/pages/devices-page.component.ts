@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
@@ -8,6 +8,8 @@ import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { Paginator } from 'primeng/paginator';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { AuthFacade } from '../../../core/auth/application/auth.facade';
@@ -23,11 +25,14 @@ import { BindDeviceOutcome, DevicesFacade } from '../application/devices.facade'
     Card,
     DatePipe,
     Dialog,
+    FormsModule,
     InputText,
     LoadingSpinnerComponent,
     Message,
+    Paginator,
     ReactiveFormsModule,
     RouterLink,
+    SelectModule,
     TableModule,
     Tag,
   ],
@@ -50,6 +55,16 @@ export class DevicesPageComponent {
   protected readonly bindModalVisible = this.devicesFacade.bindModalVisible;
   protected readonly featureError = this.devicesFacade.errorMessage;
   protected readonly hasDevices = this.devicesFacade.hasDevices;
+  protected readonly devicesQuery = this.devicesFacade.devicesQuery;
+  protected readonly totalDevices = this.devicesFacade.totalDevices;
+  protected readonly totalDevicePages = this.devicesFacade.totalDevicePages;
+  protected readonly pageSizeOptions = [
+    { label: '10', value: 10 },
+    { label: '20', value: 20 },
+    { label: '50', value: 50 },
+    { label: '100', value: 100 },
+  ];
+  protected readonly searchValue = signal('');
   protected readonly bindErrorMessage = signal<string | null>(null);
   protected readonly planUsageLabel = computed(() => {
     const currentUser = this.user();
@@ -124,6 +139,27 @@ export class DevicesPageComponent {
         void this.handleUnbind(imei);
       },
     });
+  }
+
+  protected submitSearch(): void {
+    const search = this.searchValue().trim() || undefined;
+    void this.devicesFacade.changeDevicesPage(1, this.devicesQuery().pageSize, search);
+  }
+
+  protected clearSearch(): void {
+    this.searchValue.set('');
+    void this.devicesFacade.changeDevicesPage(1, this.devicesQuery().pageSize);
+  }
+
+  protected changeDevicesPage(event: { page?: number; rows?: number }): void {
+    const query = this.devicesQuery();
+    const search = this.searchValue().trim() || undefined;
+    void this.devicesFacade.changeDevicesPage((event.page ?? 0) + 1, event.rows ?? query.pageSize, search);
+  }
+
+  protected changePageSize(pageSize: number): void {
+    const search = this.searchValue().trim() || undefined;
+    void this.devicesFacade.changeDevicesPage(1, pageSize, search);
   }
 
   protected isUnbinding(imei: string): boolean {
