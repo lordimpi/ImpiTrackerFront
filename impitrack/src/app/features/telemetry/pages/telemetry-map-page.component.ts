@@ -2,12 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnDestroy,
-  PLATFORM_ID,
   computed,
   inject,
   signal,
 } from '@angular/core';
-import { DatePipe, isPlatformBrowser } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { TelemetryMapFacade } from '../application/telemetry-map.facade';
@@ -27,17 +26,14 @@ export class TelemetryMapPageComponent implements OnDestroy {
   protected readonly facade = inject(TelemetryMapFacade);
   private readonly authFacade = inject(AuthFacade);
   private readonly router = inject(Router);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly isBrowser = isPlatformBrowser(this.platformId);
-
-  private pollingHandle: ReturnType<typeof setInterval> | null = null;
-  private countdownHandle: ReturnType<typeof setInterval> | null = null;
 
   protected readonly user = this.authFacade.user;
   protected readonly pendingInitialLoad = this.facade.pendingInitialLoad;
   protected readonly featureError = this.facade.errorMessage;
   protected readonly activeTab = signal<'fleet' | 'events' | 'trips'>('fleet');
-  protected readonly pollingCountdown = signal(30);
+  protected readonly panelOpen = signal(false);
+  protected readonly hubConnected = this.facade.hubConnected;
+  protected readonly hubReconnecting = this.facade.hubReconnecting;
 
   protected readonly markers = computed<readonly TelemetryMapMarker[]>(() =>
     this.facade
@@ -54,21 +50,10 @@ export class TelemetryMapPageComponent implements OnDestroy {
 
   constructor() {
     void this.facade.load();
-    if (this.isBrowser) {
-      this.startPolling();
-      this.startCountdown();
-    }
   }
 
   ngOnDestroy(): void {
-    if (this.pollingHandle) {
-      clearInterval(this.pollingHandle);
-      this.pollingHandle = null;
-    }
-    if (this.countdownHandle) {
-      clearInterval(this.countdownHandle);
-      this.countdownHandle = null;
-    }
+    void this.facade.disconnect();
   }
 
   protected async retryLoad(): Promise<void> {
@@ -83,16 +68,7 @@ export class TelemetryMapPageComponent implements OnDestroy {
     }
   }
 
-  private startPolling(): void {
-    this.pollingHandle = setInterval(() => {
-      this.pollingCountdown.set(30);
-      void this.facade.load(true);
-    }, 30_000);
-  }
-
-  private startCountdown(): void {
-    this.countdownHandle = setInterval(() => {
-      this.pollingCountdown.update((v) => (v > 1 ? v - 1 : 30));
-    }, 1_000);
+  protected togglePanel(): void {
+    this.panelOpen.update((v) => !v);
   }
 }

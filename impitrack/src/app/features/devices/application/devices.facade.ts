@@ -3,10 +3,17 @@ import { firstValueFrom } from 'rxjs';
 import { AuthFacade } from '../../../core/auth/application/auth.facade';
 import { normalizeApiError, unwrapApiResponse } from '../../../shared/utils/api-response.util';
 import { DevicesApiService } from '../data-access/devices-api.service';
-import { BindDeviceResultDto, UserDeviceBindingDto } from '../models/user-device.model';
+import {
+  BindDeviceResultDto,
+  UserDeviceBindingDto,
+  UserDevicesQuery,
+} from '../models/user-device.model';
 
 interface DevicesState {
   readonly devices: readonly UserDeviceBindingDto[];
+  readonly devicesQuery: UserDevicesQuery;
+  readonly totalDevices: number;
+  readonly totalDevicePages: number;
   readonly pendingInitialLoad: boolean;
   readonly pendingBind: boolean;
   readonly pendingUnbindImei: string | null;
@@ -25,6 +32,9 @@ export class DevicesFacade {
 
   private readonly state = signal<DevicesState>({
     devices: [],
+    devicesQuery: { page: 1, pageSize: 10 },
+    totalDevices: 0,
+    totalDevicePages: 0,
     pendingInitialLoad: false,
     pendingBind: false,
     pendingUnbindImei: null,
@@ -33,12 +43,15 @@ export class DevicesFacade {
   });
 
   readonly devices = computed(() => this.state().devices);
+  readonly devicesQuery = computed(() => this.state().devicesQuery);
+  readonly totalDevices = computed(() => this.state().totalDevices);
+  readonly totalDevicePages = computed(() => this.state().totalDevicePages);
   readonly pendingInitialLoad = computed(() => this.state().pendingInitialLoad);
   readonly pendingBind = computed(() => this.state().pendingBind);
   readonly pendingUnbindImei = computed(() => this.state().pendingUnbindImei);
   readonly bindModalVisible = computed(() => this.state().bindModalVisible);
   readonly errorMessage = computed(() => this.state().errorMessage);
-  readonly hasDevices = computed(() => this.devices().length > 0);
+  readonly hasDevices = computed(() => this.totalDevices() > 0 || this.devices().length > 0);
 
   async loadDevices(): Promise<void> {
     if (this.pendingInitialLoad()) {
@@ -51,11 +64,14 @@ export class DevicesFacade {
     });
 
     try {
-      const response = await firstValueFrom(this.devicesApi.getDevices());
-      const devices = unwrapApiResponse(response);
+      const query = this.state().devicesQuery;
+      const response = await firstValueFrom(this.devicesApi.getDevices(query));
+      const pagedResult = unwrapApiResponse(response);
 
       this.patchState({
-        devices: this.sortDevices(devices),
+        devices: pagedResult.items,
+        totalDevices: pagedResult.totalItems,
+        totalDevicePages: pagedResult.totalPages,
       });
     } catch (error) {
       this.patchState({
@@ -66,6 +82,14 @@ export class DevicesFacade {
         pendingInitialLoad: false,
       });
     }
+  }
+
+  async changeDevicesPage(page: number, pageSize: number, search?: string): Promise<void> {
+    this.patchState({
+      devicesQuery: { page, pageSize, search },
+    });
+
+    await this.loadDevices();
   }
 
   openBindModal(): void {
@@ -132,11 +156,14 @@ export class DevicesFacade {
   }
 
   private async loadDevicesSnapshot(): Promise<void> {
-    const response = await firstValueFrom(this.devicesApi.getDevices());
-    const devices = unwrapApiResponse(response);
+    const query = this.state().devicesQuery;
+    const response = await firstValueFrom(this.devicesApi.getDevices(query));
+    const pagedResult = unwrapApiResponse(response);
 
     this.patchState({
-      devices: this.sortDevices(devices),
+      devices: pagedResult.items,
+      totalDevices: pagedResult.totalItems,
+      totalDevicePages: pagedResult.totalPages,
       errorMessage: null,
     });
 
@@ -145,10 +172,6 @@ export class DevicesFacade {
 
   private resolveBindOutcome(result: BindDeviceResultDto): BindDeviceOutcome {
     return result.status === 2 ? 'already-bound' : 'bound';
-  }
-
-  private sortDevices(devices: readonly UserDeviceBindingDto[]): readonly UserDeviceBindingDto[] {
-    return [...devices].sort((left, right) => right.boundAtUtc.localeCompare(left.boundAtUtc));
   }
 
   private getFriendlyError(error: unknown): string {

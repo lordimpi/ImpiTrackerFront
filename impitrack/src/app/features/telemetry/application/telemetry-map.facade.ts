@@ -1,7 +1,9 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { normalizeApiError, unwrapApiResponse } from '../../../shared/utils/api-response.util';
 import { TelemetryApiService } from '../data-access/telemetry-api.service';
+import { TelemetryHubService } from '../data-access/telemetry-hub.service';
 import { TelemetryDeviceSummaryDto } from '../models/telemetry.model';
 
 interface TelemetryMapState {
@@ -16,6 +18,8 @@ interface TelemetryMapState {
 })
 export class TelemetryMapFacade {
   private readonly telemetryApi = inject(TelemetryApiService);
+  private readonly hub = inject(TelemetryHubService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly state = signal<TelemetryMapState>({
     devices: [],
@@ -32,6 +36,48 @@ export class TelemetryMapFacade {
   readonly hasMappableDevices = computed(() =>
     this.devices().some((device) => device.lastPosition !== null),
   );
+  readonly hubConnected = this.hub.connected;
+  readonly hubReconnecting = this.hub.reconnecting;
+
+  constructor() {
+    this.hub.positionUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.state.update((state) => ({
+          ...state,
+          devices: state.devices.map((device) => {
+            if (device.imei !== event.imei) return device;
+            return {
+              ...device,
+              lastSeenAtUtc: event.occurredAtUtc,
+              lastPosition: {
+                occurredAtUtc: event.occurredAtUtc,
+                receivedAtUtc: event.occurredAtUtc,
+                gpsTimeUtc: device.lastPosition?.gpsTimeUtc ?? null,
+                latitude: event.latitude ?? device.lastPosition?.latitude ?? 0,
+                longitude: event.longitude ?? device.lastPosition?.longitude ?? 0,
+                speedKmh: event.speedKmh ?? null,
+                headingDeg: event.headingDeg ?? null,
+                packetId: device.lastPosition?.packetId ?? '',
+                sessionId: device.lastPosition?.sessionId ?? '',
+              },
+            };
+          }),
+        }));
+      });
+
+    this.hub.deviceStatusChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.state.update((state) => ({
+          ...state,
+          devices: state.devices.map((device) => {
+            if (device.imei !== event.imei) return device;
+            return { ...device, lastSeenAtUtc: event.changedAtUtc };
+          }),
+        }));
+      });
+  }
 
   async load(background = false): Promise<void> {
     if (this.pendingInitialLoad() || this.refreshing()) {
@@ -51,6 +97,7 @@ export class TelemetryMapFacade {
         devices: [...devices].sort((left, right) => left.imei.localeCompare(right.imei)),
         errorMessage: null,
       });
+      this.hub.connect();
     } catch (error) {
       this.patchState({
         errorMessage: normalizeApiError(error).message,
@@ -61,6 +108,10 @@ export class TelemetryMapFacade {
         refreshing: false,
       });
     }
+  }
+
+  async disconnect(): Promise<void> {
+    await this.hub.disconnect();
   }
 
   private patchState(partial: Partial<TelemetryMapState>): void {

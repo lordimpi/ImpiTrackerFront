@@ -561,10 +561,160 @@
   }
 }
 
-// ─── RESPONSIVE ───
+// ─── Alias edit ───
+.tp-header__imei-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tp-header__imei-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono-new);
+  margin-top: 1px;
+}
+
+.tp-alias-trigger {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+.tp-alias-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.tp-alias-edit__input {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-family: var(--font-mono-new);
+  padding: 4px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.tp-alias-edit__btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+
+  &--save {
+    background: var(--accent);
+    color: #fff;
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+  }
+
+  &--cancel {
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle);
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+}
+
+// ─── Panel handle & backdrop ───
+.panel-handle {
+  display: none;
+}
+
+.tp-panel-backdrop {
+  display: none;
+}
+
+.tp-panel-open-btn {
+  display: none;
+}
+
+// ─── RESPONSIVE — bottom sheet ───
 @media (max-width: 980px) {
   .telemetry-page__panel {
-    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 75vh;
+    border-left: none;
+    border-top: 1px solid var(--border-subtle);
+    border-radius: 16px 16px 0 0;
+    z-index: 500;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+
+    &.telemetry-page__panel--open {
+      transform: translateY(0);
+    }
+  }
+
+  .panel-handle {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .panel-handle__bar {
+    width: 36px;
+    height: 4px;
+    background: var(--border-strong);
+    border-radius: 99px;
+  }
+
+  .tp-panel-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 499;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+
+    &.tp-panel-backdrop--visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .tp-panel-open-btn {
+    display: flex;
   }
 }
 

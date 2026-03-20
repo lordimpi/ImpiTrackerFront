@@ -1,40 +1,52 @@
-<section class="ops-page">
-  <p-card>
-    <ng-template pTemplate="title">Puertos de ingesta</ng-template>
-    <ng-template pTemplate="subtitle">
-      Monitorea backlog, conexiones activas y volumen de ACK por listener.
-    </ng-template>
-
-    <div class="ops-page__actions">
-      <button
-        pButton
-        type="button"
-        icon="pi pi-refresh"
-        label="Actualizar"
-        severity="secondary"
-        (click)="refresh()"
-      ></button>
-
-      @if (refreshing()) {
-        <p-tag value="Actualizando..." severity="secondary"></p-tag>
-      }
+<p-card class="ops-ports-card">
+  <ng-template pTemplate="title">
+    <div class="ops-title-row">
+      <span>Puertos de ingesta</span>
+      <nav class="ops-nav">
+        <a routerLink="/ops/raw" routerLinkActive="ops-nav__link--active" class="ops-nav__link">Raw</a>
+        <a routerLink="/ops/errors" routerLinkActive="ops-nav__link--active" class="ops-nav__link">Errores</a>
+        <a routerLink="/ops/sessions" routerLinkActive="ops-nav__link--active" class="ops-nav__link">Sesiones</a>
+        <a routerLink="/ops/ports" routerLinkActive="ops-nav__link--active" class="ops-nav__link">Puertos</a>
+      </nav>
     </div>
-  </p-card>
+  </ng-template>
 
-  <div class="app-loading-region ops-page__content" [attr.aria-busy]="pendingInitialLoad()">
+  <div class="ports-toolbar">
+    <a
+      pButton
+      routerLink="/ops/raw"
+      type="button"
+      icon="pi pi-arrow-left"
+      label="Volver"
+      severity="secondary"
+    ></a>
+    <button
+      pButton
+      type="button"
+      icon="pi pi-refresh"
+      label="Actualizar"
+      severity="secondary"
+      (click)="refresh()"
+    ></button>
+
+    @if (refreshing()) {
+      <p-tag value="Actualizando..." severity="secondary"></p-tag>
+    }
+  </div>
+
+  <div class="app-loading-region ports-data" [attr.aria-busy]="pendingInitialLoad()">
     @if (featureError()) {
-      <p-card>
-        <ng-template pTemplate="title">No pudimos cargar los puertos</ng-template>
+      <div class="ports-state">
         <p-message severity="error" [text]="featureError() ?? ''"></p-message>
-      </p-card>
+      </div>
     } @else if (hasPorts()) {
       <div class="ports-grid">
         @for (port of ports(); track port.port) {
-          <p-card class="port-card">
-            <ng-template pTemplate="title">Puerto {{ port.port }}</ng-template>
-            <ng-template pTemplate="subtitle">
-              {{ port.activeConnections }} conexiones activas
-            </ng-template>
+          <div class="port-card">
+            <div class="port-card__header">
+              <strong>Puerto {{ port.port }}</strong>
+              <span>{{ port.activeConnections }} conexiones activas</span>
+            </div>
 
             <dl class="port-card__metrics">
               <div><dt>Frames</dt><dd>{{ port.framesIn }}</dd></div>
@@ -47,20 +59,17 @@
               [value]="'Backlog ' + port.backlog"
               [severity]="getBacklogSeverity(port)"
             ></p-tag>
-          </p-card>
+          </div>
         }
       </div>
     } @else {
-      <p-card>
-        <ng-template pTemplate="title">No hay puertos con snapshot</ng-template>
-        <ng-template pTemplate="subtitle">
-          La API aun no reporta informacion operativa de ingesta por listener.
-        </ng-template>
-      </p-card>
+      <div class="ports-state">
+        <p>La API aun no reporta informacion operativa de ingesta por listener.</p>
+      </div>
     }
 
     @if (pendingInitialLoad()) {
       <app-loading-spinner mode="screen" size="sm" label="Cargando puertos..." />
     }
   </div>
-</section>
+</p-card>

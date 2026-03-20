@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Message } from 'primeng/message';
+import { Paginator } from 'primeng/paginator';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { LoadingSpinnerComponent } from '../../../shared/ui/loading-spinner/loading-spinner.component';
@@ -15,20 +17,18 @@ interface GroupOption {
   readonly value: OpsErrorGroupBy;
 }
 
-interface LimitOption {
-  readonly label: string;
-  readonly value: number;
-}
-
 @Component({
   selector: 'app-ops-errors-page',
   imports: [
     ButtonDirective,
     Card,
+    FormsModule,
     LoadingSpinnerComponent,
     Message,
+    Paginator,
     ReactiveFormsModule,
     RouterLink,
+    RouterLinkActive,
     SelectModule,
     TableModule,
   ],
@@ -51,21 +51,24 @@ export class OpsErrorsPageComponent {
   protected readonly pendingInitialLoad = this.facade.pendingInitialLoad;
   protected readonly featureError = this.facade.errorMessage;
   protected readonly hasGroups = this.facade.hasGroups;
+  protected readonly query = this.facade.query;
+  protected readonly totalItems = this.facade.totalItems;
+  protected readonly totalPages = this.facade.totalPages;
   protected readonly form = this.formBuilder.group({
     from: [this.toDateTimeInputValue(this.subtractHours(1))],
     to: [this.toDateTimeInputValue(new Date())],
     groupBy: ['errorCode' as OpsErrorGroupBy],
-    limit: [20],
   });
   protected readonly groupOptions: GroupOption[] = [
     { label: 'Error de parseo', value: 'errorCode' },
     { label: 'Protocolo', value: 'protocol' },
     { label: 'Puerto', value: 'port' },
   ];
-  protected readonly limitOptions: LimitOption[] = [
-    { label: '10 grupos', value: 10 },
-    { label: '20 grupos', value: 20 },
-    { label: '50 grupos', value: 50 },
+  protected readonly pageSizeOptions = [
+    { label: '10', value: 10 },
+    { label: '20', value: 20 },
+    { label: '50', value: 50 },
+    { label: '100', value: 100 },
   ];
   protected readonly summary = computed(
     () =>
@@ -81,7 +84,6 @@ export class OpsErrorsPageComponent {
       from: new Date(this.form.controls.from.getRawValue()).toISOString(),
       to: new Date(this.form.controls.to.getRawValue()).toISOString(),
       groupBy: this.form.controls.groupBy.getRawValue(),
-      limit: this.form.controls.limit.getRawValue(),
     });
   }
 
@@ -90,9 +92,17 @@ export class OpsErrorsPageComponent {
       from: this.toDateTimeInputValue(this.subtractHours(1)),
       to: this.toDateTimeInputValue(new Date()),
       groupBy: 'errorCode',
-      limit: 20,
     });
     await this.submitFilters();
+  }
+
+  protected changeErrorsPage(event: { page?: number; rows?: number }): void {
+    const currentQuery = this.query();
+    void this.facade.changePage((event.page ?? 0) + 1, event.rows ?? currentQuery.pageSize);
+  }
+
+  protected changePageSize(pageSize: number): void {
+    void this.facade.changePage(1, pageSize);
   }
 
   private subtractHours(hours: number): Date {

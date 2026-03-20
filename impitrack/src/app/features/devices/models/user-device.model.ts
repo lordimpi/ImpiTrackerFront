@@ -12,3 +12,9 @@ export interface BindDeviceResultDto {
   readonly status: number;
   readonly deviceId?: string | null;
 }
+
+export interface UserDevicesQuery {
+  readonly page: number;
+  readonly pageSize: number;
+  readonly search?: string;
+}

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { APP_CONFIG } from '../../../core/config/app-config';
 import { ApiResponse } from '../../../shared/models/api-response.model';
 import {
+  DeviceAliasResultDto,
   DeviceEventDto,
   DevicePositionPointDto,
   TelemetryDeviceSummaryDto,
@@ -133,6 +134,16 @@ export class TelemetryApiService {
       {
         params: this.toWindowParams(query),
       },
+    );
+  }
+
+  updateMyDeviceAlias(
+    imei: string,
+    alias: string | null,
+  ): Observable<ApiResponse<DeviceAliasResultDto> | DeviceAliasResultDto> {
+    return this.httpClient.put<ApiResponse<DeviceAliasResultDto> | DeviceAliasResultDto>(
+      `${this.baseUrl}/me/telemetry/devices/${imei}/alias`,
+      { alias },
     );
   }
 

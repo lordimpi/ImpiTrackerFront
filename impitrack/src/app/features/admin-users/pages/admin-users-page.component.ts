@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
@@ -33,6 +34,7 @@ interface SortDirectionOption {
   imports: [
     ButtonDirective,
     Card,
+    FormsModule,
     InputText,
     LoadingSpinnerComponent,
     Message,
@@ -79,6 +81,12 @@ export class AdminUsersPageComponent {
   protected readonly sortDirectionOptions: SortDirectionOption[] = [
     { label: 'Ascendente', value: 'asc' },
     { label: 'Descendente', value: 'desc' },
+  ];
+  protected readonly pageSizeOptions = [
+    { label: '10', value: 10 },
+    { label: '20', value: 20 },
+    { label: '50', value: 50 },
+    { label: '100', value: 100 },
   ];
   protected readonly form = this.formBuilder.group({
     search: [''],
@@ -129,6 +137,13 @@ export class AdminUsersPageComponent {
       planCode: undefined,
       sortBy: 'email',
       sortDirection: 'asc',
+    });
+  }
+
+  protected async changePageSize(pageSize: number): Promise<void> {
+    await this.adminUsersFacade.applyQuery({
+      page: 1,
+      pageSize,
     });
   }
 

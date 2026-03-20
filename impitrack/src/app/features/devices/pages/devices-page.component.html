@@ -1,50 +1,67 @@
-<section class="devices-page">
-  <p-card class="devices-hero">
-    <ng-template pTemplate="title">Mis dispositivos</ng-template>
-    <ng-template pTemplate="subtitle">
-      Vincula tus GPS por IMEI y administra rapidamente los equipos asociados a tu cuenta.
-    </ng-template>
+<p-card class="devices-card">
+  <ng-template pTemplate="title">
+    <div class="devices-title-row">
+      <span>Mis dispositivos</span>
+      <div class="devices-title-row__right">
+        <article class="devices-stat">
+          <span class="devices-stat__label">Plan actual</span>
+          <strong>{{ user()?.planName || 'Pendiente de asignacion' }}</strong>
+        </article>
 
-    <div class="devices-hero__meta">
-      <article class="devices-stat">
-        <span class="devices-stat__label">Plan actual</span>
-        <strong>{{ user()?.planName || 'Pendiente de asignacion' }}</strong>
-      </article>
-
-      <article class="devices-stat">
-        <span class="devices-stat__label">Uso disponible</span>
-        <strong>{{ planUsageLabel() }}</strong>
-      </article>
-
-      <p-tag
-        [severity]="canBindMore() ? 'success' : 'warn'"
-        [value]="canBindMore() ? 'Puedes vincular mas GPS' : 'Sin cupos disponibles'"
-      ></p-tag>
-    </div>
-
-    @if (hasDevices()) {
-      <div class="devices-hero__actions">
-        <button
-          pButton
-          type="button"
-          icon="pi pi-plus"
-          label="Vincular dispositivo"
-          [disabled]="pendingInitialLoad() || pendingBind()"
-          (click)="openBindModal()"
-        ></button>
+        <article class="devices-stat">
+          <span class="devices-stat__label">Uso disponible</span>
+          <strong>{{ planUsageLabel() }}</strong>
+          <p-tag
+            [severity]="canBindMore() ? 'success' : 'warn'"
+            [value]="canBindMore() ? 'Puedes vincular mas GPS' : 'Sin cupos disponibles'"
+          ></p-tag>
+        </article>
       </div>
-    }
-  </p-card>
+    </div>
+  </ng-template>
 
-  <div class="app-loading-region devices-content" [attr.aria-busy]="pendingInitialLoad()">
+  <form class="devices-search" (ngSubmit)="submitSearch()">
+    <label class="devices-search__field">
+      <span>Buscar dispositivo</span>
+      <input
+        pInputText
+        type="text"
+        autocomplete="off"
+        placeholder="IMEI o alias"
+        [ngModel]="searchValue()"
+        (ngModelChange)="searchValue.set($event)"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </label>
+
+    <div class="devices-search__actions">
+      <button pButton type="submit" icon="pi pi-search" label="Buscar"></button>
+      <button
+        pButton
+        type="button"
+        icon="pi pi-times"
+        label="Limpiar"
+        severity="secondary"
+        (click)="clearSearch()"
+      ></button>
+      <button
+        pButton
+        type="button"
+        icon="pi pi-plus"
+        label="Vincular dispositivo"
+        [disabled]="pendingInitialLoad() || pendingBind()"
+        (click)="openBindModal()"
+      ></button>
+    </div>
+  </form>
+
+  <div class="app-loading-region devices-data" [attr.aria-busy]="pendingInitialLoad()">
     @if (featureError()) {
-      <p-card class="devices-state-card">
-        <ng-template pTemplate="title">No pudimos cargar tus dispositivos</ng-template>
+      <div class="devices-state">
         @if (featureError(); as featureErrorText) {
           <p-message severity="error" [text]="featureErrorText"></p-message>
         }
-
-        <div class="devices-state-card__actions">
+        <div class="devices-state__actions">
           <button
             pButton
             type="button"
@@ -55,69 +72,56 @@
             (click)="retryLoad()"
           ></button>
         </div>
-      </p-card>
+      </div>
     } @else if (hasDevices()) {
-      <p-card class="devices-table-card">
-        <ng-template pTemplate="title">Dispositivos vinculados</ng-template>
-        <ng-template pTemplate="subtitle">
-          Cada fila representa un IMEI activo bajo tu cuenta actual.
+      <p-table [value]="devices()" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>IMEI</th>
+            <th>Fecha de vinculacion</th>
+            <th>Estado</th>
+            <th class="devices-table__actions">Acciones</th>
+          </tr>
         </ng-template>
 
-        <p-table [value]="devices()" responsiveLayout="scroll">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>IMEI</th>
-              <th>Fecha de vinculacion</th>
-              <th>Estado</th>
-              <th class="devices-table__actions">Acciones</th>
-            </tr>
-          </ng-template>
-
-          <ng-template pTemplate="body" let-device>
-            <tr>
-              <td>
-                <span class="device-imei">{{ device.imei }}</span>
-              </td>
-              <td>{{ device.boundAtUtc | date: 'medium' }}</td>
-              <td>
-                <p-tag value="Vinculado" severity="info"></p-tag>
-              </td>
-              <td class="devices-table__actions">
-                <a
-                  pButton
-                  type="button"
-                  icon="pi pi-map"
-                  label="Telemetria"
-                  severity="secondary"
-                  [routerLink]="['/app/devices', device.imei, 'telemetry']"
-                ></a>
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-trash"
-                  label="Desvincular"
-                  severity="secondary"
-                  [disabled]="isUnbinding(device.imei)"
-                  (click)="confirmUnbind(device.imei)"
-                ></button>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </p-card>
+        <ng-template pTemplate="body" let-device>
+          <tr>
+            <td>
+              <span class="device-imei">{{ device.imei }}</span>
+            </td>
+            <td>{{ device.boundAtUtc | date: 'medium' }}</td>
+            <td>
+              <p-tag value="Vinculado" severity="info"></p-tag>
+            </td>
+            <td class="devices-table__actions">
+              <a
+                pButton
+                type="button"
+                icon="pi pi-map"
+                label="Telemetria"
+                severity="secondary"
+                [routerLink]="['/app/devices', device.imei, 'telemetry']"
+              ></a>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-trash"
+                label="Desvincular"
+                severity="secondary"
+                [disabled]="isUnbinding(device.imei)"
+                (click)="confirmUnbind(device.imei)"
+              ></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
     } @else {
-      <p-card class="devices-state-card">
-        <ng-template pTemplate="title">Todavia no tienes dispositivos vinculados</ng-template>
-        <ng-template pTemplate="subtitle">
-          Cuando agregues un IMEI valido, aparecera aqui con su fecha de vinculacion.
-        </ng-template>
-
+      <div class="devices-state">
         <p class="devices-empty-copy">
-          Empieza vinculando tu primer GPS desde el modal rapido y mantendras todo el flujo dentro
-          de esta misma pantalla.
+          Todavia no tienes dispositivos vinculados. Empieza vinculando tu primer GPS desde el boton
+          de arriba y mantendras todo el flujo dentro de esta misma pantalla.
         </p>
-
-        <div class="devices-state-card__actions">
+        <div class="devices-state__actions">
           <button
             pButton
             type="button"
@@ -127,14 +131,40 @@
             (click)="openBindModal()"
           ></button>
         </div>
-      </p-card>
+      </div>
     }
 
     @if (pendingInitialLoad()) {
       <app-loading-spinner mode="screen" size="sm" label="Cargando dispositivos..." />
     }
   </div>
-</section>
+
+  @if (hasDevices()) {
+    <div class="devices-footer">
+      <label class="devices-footer__page-size">
+        <span>Registros por pagina</span>
+        <p-select
+          [options]="pageSizeOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="devicesQuery().pageSize"
+          (ngModelChange)="changePageSize($event)"
+        ></p-select>
+      </label>
+
+      <p-paginator
+        [first]="(devicesQuery().page - 1) * devicesQuery().pageSize"
+        [rows]="devicesQuery().pageSize"
+        [totalRecords]="totalDevices()"
+        (onPageChange)="changeDevicesPage($event)"
+      ></p-paginator>
+
+      <span class="devices-footer__info">
+        Pagina {{ devicesQuery().page }} de {{ totalDevicePages() || 1 }}
+      </span>
+    </div>
+  }
+</p-card>
 
 <p-dialog
   header="Vincular dispositivo"

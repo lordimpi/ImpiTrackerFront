@@ -22,7 +22,7 @@ interface AdminUsersListState {
 
 const DEFAULT_QUERY: AdminUserListQuery = {
   page: 1,
-  pageSize: 20,
+  pageSize: 10,
   sortBy: 'email',
   sortDirection: 'asc',
 };

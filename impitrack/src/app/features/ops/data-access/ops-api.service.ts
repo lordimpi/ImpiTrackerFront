@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { APP_CONFIG } from '../../../core/config/app-config';
 import { ApiResponse } from '../../../shared/models/api-response.model';
+import { PagedResult } from '../../admin-users/models/admin-user.model';
 import {
   ErrorAggregateDto,
   OpsErrorsQuery,
@@ -23,19 +24,24 @@ export class OpsApiService {
 
   getLatestRaw(
     query: OpsRawQuery,
-  ): Observable<ApiResponse<readonly RawPacketRecordDto[]> | readonly RawPacketRecordDto[]> {
-    let params = new HttpParams().set('limit', query.limit);
+  ): Observable<ApiResponse<PagedResult<RawPacketRecordDto>> | PagedResult<RawPacketRecordDto>> {
+    let params = new HttpParams()
+      .set('page', query.page)
+      .set('pageSize', query.pageSize);
 
     if (query.imei) {
       params = params.set('imei', query.imei);
     }
 
-    return this.httpClient.get<ApiResponse<readonly RawPacketRecordDto[]> | readonly RawPacketRecordDto[]>(
+    return this.httpClient.get<ApiResponse<PagedResult<RawPacketRecordDto>> | PagedResult<RawPacketRecordDto>>(
       `${this.baseUrl}/raw/latest`,
       { params },
     ).pipe(
       map((response) =>
-        this.mapApiResponse(response, (packets) => packets.map((packet) => this.normalizeRawPacket(packet))),
+        this.mapApiResponse(response, (pagedResult) => ({
+          ...pagedResult,
+          items: pagedResult.items.map((packet) => this.normalizeRawPacket(packet)),
+        })),
       ),
     );
   }
@@ -52,42 +58,49 @@ export class OpsApiService {
 
   getTopErrors(
     query: OpsErrorsQuery,
-  ): Observable<ApiResponse<readonly ErrorAggregateDto[]> | readonly ErrorAggregateDto[]> {
+  ): Observable<ApiResponse<PagedResult<ErrorAggregateDto>> | PagedResult<ErrorAggregateDto>> {
     const params = new HttpParams()
+      .set('page', query.page)
+      .set('pageSize', query.pageSize)
       .set('from', query.from)
       .set('to', query.to)
-      .set('groupBy', query.groupBy)
-      .set('limit', query.limit);
+      .set('groupBy', query.groupBy);
 
     return this.httpClient.get<
-      ApiResponse<readonly ErrorAggregateDto[]> | readonly ErrorAggregateDto[]
+      ApiResponse<PagedResult<ErrorAggregateDto>> | PagedResult<ErrorAggregateDto>
     >(`${this.baseUrl}/errors/top`, {
       params,
     }).pipe(
       map((response) =>
-        this.mapApiResponse(response, (groups) => groups.map((group) => this.normalizeErrorGroup(group))),
+        this.mapApiResponse(response, (pagedResult) => ({
+          ...pagedResult,
+          items: pagedResult.items.map((group) => this.normalizeErrorGroup(group)),
+        })),
       ),
     );
   }
 
   getActiveSessions(
     query: OpsSessionsQuery,
-  ): Observable<ApiResponse<readonly SessionRecordDto[]> | readonly SessionRecordDto[]> {
-    let params = new HttpParams();
+  ): Observable<ApiResponse<PagedResult<SessionRecordDto>> | PagedResult<SessionRecordDto>> {
+    let params = new HttpParams()
+      .set('page', query.page)
+      .set('pageSize', query.pageSize);
 
     if (typeof query.port === 'number') {
       params = params.set('port', query.port);
     }
 
     return this.httpClient.get<
-      ApiResponse<readonly SessionRecordDto[]> | readonly SessionRecordDto[]
+      ApiResponse<PagedResult<SessionRecordDto>> | PagedResult<SessionRecordDto>
     >(`${this.baseUrl}/sessions/active`, {
       params,
     }).pipe(
       map((response) =>
-        this.mapApiResponse(response, (sessions) =>
-          sessions.map((session) => this.normalizeSessionRecord(session)),
-        ),
+        this.mapApiResponse(response, (pagedResult) => ({
+          ...pagedResult,
+          items: pagedResult.items.map((session) => this.normalizeSessionRecord(session)),
+        })),
       ),
     );
   }
