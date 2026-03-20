@@ -20,6 +20,28 @@ export interface TelemetryDeviceSummaryDto {
   readonly protocol: TelemetryPrimitive | null;
   readonly lastMessageType: TelemetryPrimitive | null;
   readonly lastPosition: LastKnownPositionDto | null;
+  readonly alias: string | null;
+}
+
+export interface DeviceAliasResultDto {
+  readonly imei: string;
+  readonly alias: string | null;
+}
+
+export interface PositionUpdatedEvent {
+  readonly imei: string;
+  readonly latitude: number | null;
+  readonly longitude: number | null;
+  readonly speedKmh: number | null;
+  readonly headingDeg: number | null;
+  readonly occurredAtUtc: string;
+  readonly ignitionOn: boolean | null;
+}
+
+export interface DeviceStatusChangedEvent {
+  readonly imei: string;
+  readonly status: string;
+  readonly changedAtUtc: string;
 }
 
 export interface DevicePositionPointDto {

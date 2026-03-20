@@ -2,10 +2,27 @@
   <!-- MAPA FULLSCREEN -->
   <div class="map-page__map">
     <app-telemetry-map [markers]="markers()" [pathPoints]="[]" [emptyLabel]="'Sin posiciones'" />
+
+    <!-- FAB: abre panel en mobile -->
+    <button class="panel-fab" (click)="togglePanel()" aria-label="Ver dispositivos">
+      <i class="pi pi-list"></i>
+    </button>
   </div>
 
+  <!-- Backdrop (solo mobile) -->
+  <div
+    class="panel-backdrop"
+    [class.panel-backdrop--visible]="panelOpen()"
+    (click)="togglePanel()"
+  ></div>
+
   <!-- PANEL DERECHO -->
-  <aside class="device-panel">
+  <aside class="device-panel" [class.device-panel--open]="panelOpen()">
+    <!-- Drag handle (solo mobile) -->
+    <div class="panel-handle" (click)="togglePanel()">
+      <span class="panel-handle__bar"></span>
+    </div>
+
     <!-- Resumen rápido -->
     <div class="panel-summary">
       <div class="float-card__title">Resumen · Hoy</div>
@@ -22,17 +39,27 @@
         </div>
       </div>
       <div class="panel-summary__footer">
-        <div class="live-badge">
-          <span class="live-badge__dot"></span>
-          ACTUALIZANDO · cada {{ pollingCountdown() }}s
-        </div>
+        @if (hubConnected()) {
+          <div class="live-badge live-badge--connected">
+            <span class="live-badge__dot"></span>
+            LIVE
+          </div>
+        } @else if (hubReconnecting()) {
+          <div class="live-badge live-badge--reconnecting">
+            <i class="pi pi-spin pi-sync" style="font-size: 10px;"></i>
+            RECONECTANDO
+          </div>
+        } @else {
+          <div class="live-badge live-badge--disconnected">
+            DESCONECTADO
+          </div>
+        }
         @if (markers().length > 0) {
           <div class="status-bar">
             <span class="status-bar__item">
               <span class="status-bar__dot status-bar__dot--green"></span>
               {{ markers().length }} activos
             </span>
-            <span class="status-bar__item">hace {{ pollingCountdown() }}s</span>
           </div>
         }
       </div>
@@ -126,8 +153,11 @@
                   <i class="pi pi-car"></i>
                 </div>
                 <div class="device-list-item__info">
-                  <div class="device-list-item__name">{{ device.imei }}</div>
+                  <div class="device-list-item__name">{{ device.alias || device.imei }}</div>
                   <div class="device-list-item__sub">
+                    @if (device.alias) {
+                      {{ device.imei }} ·
+                    }
                     @if (device.lastPosition) {
                       {{ device.lastPosition.speedKmh ?? 0 }} km/h ·
                       {{ device.lastSeenAtUtc | date: 'dd/MM HH:mm' }}

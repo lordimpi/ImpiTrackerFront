@@ -84,6 +84,9 @@ export class DeviceTelemetryPageComponent {
   protected readonly summaryDialogVisible = signal(false);
   protected readonly eventDetailVisible = signal(false);
   protected readonly selectedEvent = signal<DeviceEventDto | null>(null);
+  protected readonly panelOpen = signal(false);
+  protected readonly aliasEditMode = signal(false);
+  protected readonly aliasEditValue = signal('');
   protected readonly eventFilterControl = this.formBuilder.control('all', {
     validators: [Validators.required],
   });
@@ -408,6 +411,25 @@ export class DeviceTelemetryPageComponent {
       this.facade.imei() ?? '',
       this.currentWindow(),
     );
+  }
+
+  protected togglePanel(): void {
+    this.panelOpen.update((v) => !v);
+  }
+
+  protected openAliasEdit(): void {
+    this.aliasEditValue.set(this.device()?.alias ?? '');
+    this.aliasEditMode.set(true);
+  }
+
+  protected cancelAliasEdit(): void {
+    this.aliasEditMode.set(false);
+  }
+
+  protected async saveAlias(): Promise<void> {
+    const value = this.aliasEditValue().trim() || null;
+    await this.facade.updateAlias(value);
+    this.aliasEditMode.set(false);
   }
 
   protected async goBack(): Promise<void> {

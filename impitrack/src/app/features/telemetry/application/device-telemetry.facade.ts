@@ -6,6 +6,7 @@ import { TelemetryApiService } from '../data-access/telemetry-api.service';
 import {
   DEFAULT_EVENTS_LIMIT,
   DEFAULT_POSITIONS_LIMIT,
+  DeviceAliasResultDto,
   DeviceEventDto,
   DevicePositionPointDto,
   DEFAULT_TRIPS_LIMIT,
@@ -183,6 +184,18 @@ export class DeviceTelemetryFacade {
         pendingTripSelection: false,
       });
     }
+  }
+
+  async updateAlias(alias: string | null): Promise<void> {
+    const imei = this.imei();
+    if (!imei) return;
+
+    const response = await firstValueFrom(this.telemetryApi.updateMyDeviceAlias(imei, alias));
+    const result = unwrapApiResponse(response) as DeviceAliasResultDto;
+    this.state.update((state) => ({
+      ...state,
+      device: state.device ? { ...state.device, alias: result.alias } : null,
+    }));
   }
 
   private async fetchTelemetry(
