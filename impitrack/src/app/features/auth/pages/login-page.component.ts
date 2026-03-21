@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -32,7 +32,9 @@ export class LoginPageComponent {
   private readonly formBuilder = inject(FormBuilder).nonNullable;
   private readonly authFacade = inject(AuthFacade);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
+  protected readonly justRegistered = signal(false);
   protected readonly submitError = signal<string | null>(null);
   protected readonly pending = signal(false);
   protected readonly form = this.formBuilder.group({
@@ -40,6 +42,12 @@ export class LoginPageComponent {
     password: ['', [Validators.required, Validators.minLength(8)]],
     rememberSession: [false],
   });
+
+  constructor() {
+    if (this.route.snapshot.queryParamMap.get('registered') === 'true') {
+      this.justRegistered.set(true);
+    }
+  }
 
   protected async submit(): Promise<void> {
     if (this.form.invalid || this.pending()) {

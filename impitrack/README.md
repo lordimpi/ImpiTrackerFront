@@ -40,14 +40,14 @@ src/app/
 
 ### Key Capabilities
 
-| Area      | Description                                                        |
-| --------- | ------------------------------------------------------------------ |
-| Auth      | JWT + refresh token, register, recover, reset, remember session    |
-| Map       | Fullscreen with device panel, polling 30s, last known position     |
-| Telemetry | Per-device: trips, events, position history, ignition segmentation |
-| Devices   | Bind/unbind by IMEI, plan usage visibility                         |
-| Admin     | User list, detail, plan management, device oversight               |
-| Ops       | Raw packets, parse errors, active sessions, TCP ports              |
+| Area      | Description                                                                      |
+| --------- | -------------------------------------------------------------------------------- |
+| Auth      | JWT + refresh token, register with email verification prompt, recover, reset     |
+| Map       | Fullscreen with device panel, polling 30s, last known position                   |
+| Telemetry | Per-device: trips, events, position history, ignition segmentation               |
+| Devices   | Bind/unbind by IMEI, search by IMEI/alias, server-side pagination                |
+| Admin     | User list with filters, user detail with device search, plan and device mgmt     |
+| Ops       | Raw packets with inline detail modal, errors, sessions, ports — all paginated    |
 
 ## Development
 
@@ -67,6 +67,13 @@ Expected backend API: `https://localhost:54124`
 | `npm run watch`               | Incremental dev build |
 | `npm test -- --watch=false`   | Unit tests            |
 | `npm run serve:ssr:impitrack` | Serve SSR build       |
+
+## UI Patterns
+
+- **Datagrid layout**: All views with tables use a single `p-card` filling the viewport (`100dvh`). Only the table region scrolls. A fixed footer contains: page-size selector (left), paginator (center), page info (right).
+- **Server-side pagination**: All datagrids use backend pagination with `PagedResult<T>` (`page`, `pageSize`, `totalItems`, `totalPages`). Default page size is 10.
+- **Ops navigation**: Ops sub-views (raw, errors, sessions, ports) include inline tab navigation in the card title. The shell is a passthrough `<router-outlet>`.
+- **Branding**: Logo in sidebar (shield icon collapsed, full logo expanded). Favicon set with SVG, ICO, PNG, apple-touch-icon, and PWA manifest.
 
 ## Conventions
 

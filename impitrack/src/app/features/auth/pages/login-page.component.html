@@ -3,6 +3,13 @@
     <ng-template pTemplate="title">Iniciar sesión</ng-template>
     <ng-template pTemplate="subtitle"> Accede a tu panel de monitoreo GPS. </ng-template>
 
+    @if (justRegistered()) {
+      <p-message
+        severity="success"
+        text="Cuenta creada con exito. Revisa tu correo para validar la cuenta antes de iniciar sesion."
+      ></p-message>
+    }
+
     <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
       <label class="field">
         <span>Usuario o correo</span>
