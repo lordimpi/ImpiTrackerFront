@@ -8,7 +8,6 @@ import { Card } from 'primeng/card';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Password } from 'primeng/password';
-import { MessageService } from 'primeng/api';
 import { AuthFacade } from '../../../core/auth/application/auth.facade';
 import { ApiError } from '../../../shared/models/api-error.model';
 import { LoadingSpinnerComponent } from '../../../shared/ui/loading-spinner/loading-spinner.component';
@@ -38,7 +37,7 @@ export class RegisterPageComponent {
   private readonly formBuilder = inject(FormBuilder).nonNullable;
   private readonly authFacade = inject(AuthFacade);
   private readonly router = inject(Router);
-  private readonly messageService = inject(MessageService);
+
 
   protected readonly pending = signal(false);
   protected readonly submitError = signal<string | null>(null);
@@ -93,12 +92,9 @@ export class RegisterPageComponent {
         email,
         password,
       });
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Cuenta creada',
-        detail: 'Revisa tu correo para validar la cuenta antes de iniciar sesion.',
+      await this.router.navigate(['/auth/login'], {
+        queryParams: { registered: 'true' },
       });
-      await this.router.navigate(['/auth/login']);
     } catch (error) {
       this.submitError.set(this.getRegisterErrorMessage(normalizeApiError(error)));
     } finally {
