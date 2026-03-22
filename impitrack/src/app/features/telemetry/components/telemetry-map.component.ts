@@ -31,6 +31,7 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
   readonly markers = input<readonly TelemetryMapMarker[]>([]);
   readonly pathPoints = input<readonly TelemetryMapMarker[]>([]);
   readonly activeImei = input<string | null>(null);
+  readonly followPosition = input(false);
   readonly emptyLabel = input('Todavia no hay posiciones para mostrar.');
 
   @ViewChild('mapHost')
@@ -204,6 +205,9 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
       this.map.fitBounds(boundsPoints, {
         padding: [24, 24],
       });
+    } else if (this.followPosition() && boundsPoints.length > 0) {
+      const lastPoint = boundsPoints[boundsPoints.length - 1];
+      this.map.panTo(lastPoint, { animate: true, duration: 0.5 });
     }
   }
 
