@@ -27,6 +27,19 @@
     </div>
   </aside>
 
+  <nav class="mobile-tab-bar">
+    @for (item of visibleItems(); track item.route) {
+      <a class="mobile-tab-bar__item" [routerLink]="item.route" routerLinkActive="mobile-tab-bar__item--active">
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+    <button class="mobile-tab-bar__item" (click)="signOut()">
+      <i class="pi pi-sign-out"></i>
+      <span>Salir</span>
+    </button>
+  </nav>
+
   <div class="canvas">
     <main class="canvas__content canvas__content--fullscreen">
       <router-outlet />

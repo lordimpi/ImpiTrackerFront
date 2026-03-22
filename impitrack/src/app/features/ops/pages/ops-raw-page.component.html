@@ -49,37 +49,41 @@
         <p-message severity="error" [text]="featureError() ?? ''"></p-message>
       </div>
     } @else if (hasPackets()) {
-      <p-table [value]="packets()" responsiveLayout="scroll">
+      <p-table [value]="packets()" [expandedRowKeys]="expandedRows" dataKey="packetId" responsiveLayout="scroll">
         <ng-template pTemplate="header">
           <tr>
-            <th>Recibido</th>
+            <th class="mobile-expand-col"></th>
+            <th class="col-hide-mobile">Recibido</th>
             <th>IMEI</th>
-            <th>Protocolo</th>
+            <th class="col-hide-mobile">Protocolo</th>
             <th>Parseo</th>
-            <th>ACK</th>
-            <th>Puerto</th>
+            <th class="col-hide-mobile">ACK</th>
+            <th class="col-hide-mobile">Puerto</th>
             <th>Acciones</th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-packet>
           <tr>
-            <td>{{ packet.receivedAtUtc | date: 'medium' }}</td>
+            <td class="mobile-expand-col">
+              <button pButton type="button" [icon]="expandedRows[packet.packetId] ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="p-button-text p-button-sm" (click)="toggleRow(packet)"></button>
+            </td>
+            <td class="col-hide-mobile">{{ packet.receivedAtUtc | date: 'medium' }}</td>
             <td>{{ packet.imei || 'No disponible' }}</td>
-            <td>{{ toText(packet.protocol) }}</td>
+            <td class="col-hide-mobile">{{ toText(packet.protocol) }}</td>
             <td>
               <p-tag
                 [value]="getParseLabel(packet.parseStatus)"
                 [severity]="getParseSeverity(packet)"
               ></p-tag>
             </td>
-            <td>
+            <td class="col-hide-mobile">
               <p-tag
                 [value]="packet.ackSent ? 'Enviado' : 'Sin ACK'"
                 [severity]="getAckSeverity(packet)"
               ></p-tag>
             </td>
-            <td>{{ packet.port }}</td>
+            <td class="col-hide-mobile">{{ packet.port }}</td>
             <td class="ops-raw-table__actions">
               <button
                 pButton
@@ -89,6 +93,31 @@
                 severity="secondary"
                 (click)="openDetail(packet.packetId)"
               ></button>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="rowexpansion" let-packet>
+          <tr>
+            <td [attr.colspan]="8">
+              <dl class="mobile-row-detail">
+                <div>
+                  <dt>Recibido</dt>
+                  <dd>{{ packet.receivedAtUtc | date: 'medium' }}</dd>
+                </div>
+                <div>
+                  <dt>Protocolo</dt>
+                  <dd>{{ toText(packet.protocol) }}</dd>
+                </div>
+                <div>
+                  <dt>ACK</dt>
+                  <dd>{{ packet.ackSent ? 'Enviado' : 'Sin ACK' }}</dd>
+                </div>
+                <div>
+                  <dt>Puerto</dt>
+                  <dd>{{ packet.port }}</dd>
+                </div>
+              </dl>
             </td>
           </tr>
         </ng-template>
