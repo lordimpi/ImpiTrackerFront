@@ -46,6 +46,7 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
   private markerLayer?: LeafletLayerGroup;
   private mapInitPromise?: Promise<void>;
   private viewInitialized = false;
+  private hasFittedBounds = false;
 
   protected get hasMapData(): boolean {
     return this.markers().length > 0 || this.pathPoints().length > 0;
@@ -71,6 +72,7 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
     this.map = undefined;
     this.markerLayer = undefined;
     this.mapInitPromise = undefined;
+    this.hasFittedBounds = false;
 
     const hostElement = this.mapHost?.nativeElement as
       | (HTMLDivElement & { _leaflet_id?: number })
@@ -186,19 +188,23 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
       boundsPoints.push([marker.latitude, marker.longitude]);
     }
 
-    if (boundsPoints.length === 0) {
-      this.map.setView([4.5709, -74.2973], 6);
-      return;
-    }
+    if (!this.hasFittedBounds) {
+      this.hasFittedBounds = true;
 
-    if (boundsPoints.length === 1) {
-      this.map.setView(boundsPoints[0], 14);
-      return;
-    }
+      if (boundsPoints.length === 0) {
+        this.map.setView([4.5709, -74.2973], 6);
+        return;
+      }
 
-    this.map.fitBounds(boundsPoints, {
-      padding: [24, 24],
-    });
+      if (boundsPoints.length === 1) {
+        this.map.setView(boundsPoints[0], 14);
+        return;
+      }
+
+      this.map.fitBounds(boundsPoints, {
+        padding: [24, 24],
+      });
+    }
   }
 
   private segmentByIgnition(
