@@ -48,6 +48,7 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
   private mapInitPromise?: Promise<void>;
   private viewInitialized = false;
   private hasFittedBounds = false;
+  private lastPathPointsLength = 0;
 
   protected get hasMapData(): boolean {
     return this.markers().length > 0 || this.pathPoints().length > 0;
@@ -136,39 +137,74 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
     this.markerLayer.clearLayers();
 
     const boundsPoints: Array<[number, number]> = [];
-
     const pathPoints = this.pathPoints();
-    if (pathPoints.length > 1) {
-      const segments = this.segmentByIgnition(pathPoints);
-      // Borde negro (dibujado primero, queda debajo)
-      for (const segment of segments) {
-        this.leaflet
-          .polyline(segment.coords, {
-            color: '#1a1a1a',
-            weight: 7,
-            opacity: 0.9,
-            lineCap: 'round',
-            lineJoin: 'round',
-          })
-          .addTo(this.markerLayer);
+
+    // Reset bounds cuando cambian los pathPoints (nuevo trip seleccionado)
+    if (pathPoints.length !== this.lastPathPointsLength) {
+      this.lastPathPointsLength = pathPoints.length;
+      if (pathPoints.length > 0) {
+        this.hasFittedBounds = false;
       }
-      // Línea principal encima
-      for (const segment of segments) {
-        this.leaflet
-          .polyline(segment.coords, {
-            color: segment.color,
-            weight: 4,
-            opacity: 1,
-            lineCap: 'round',
-            lineJoin: 'round',
-          })
-          .addTo(this.markerLayer);
-      }
-      boundsPoints.push(
-        ...pathPoints.map((point) => [point.latitude, point.longitude] as [number, number]),
-      );
     }
 
+    // Dibujar recorrido — siempre amarillo con borde negro
+    if (pathPoints.length > 1) {
+      const coords = pathPoints.map(
+        (point) => [point.latitude, point.longitude] as [number, number],
+      );
+
+      // Borde negro
+      this.leaflet
+        .polyline(coords, {
+          color: '#1a1a1a',
+          weight: 7,
+          opacity: 0.9,
+          lineCap: 'round',
+          lineJoin: 'round',
+        })
+        .addTo(this.markerLayer);
+
+      // Línea amarilla encima
+      this.leaflet
+        .polyline(coords, {
+          color: '#f5c842',
+          weight: 4,
+          opacity: 1,
+          lineCap: 'round',
+          lineJoin: 'round',
+        })
+        .addTo(this.markerLayer);
+
+      // Marcador A (inicio) — verde
+      const startIcon = this.leaflet.divIcon({
+        className: 'telemetry-map__ab-icon-shell',
+        html: '<span class="telemetry-map__ab-icon telemetry-map__ab-icon--start">A</span>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -28],
+      });
+      this.leaflet
+        .marker(coords[0], { icon: startIcon })
+        .bindPopup('Inicio del recorrido')
+        .addTo(this.markerLayer);
+
+      // Marcador B (final) — naranja
+      const endIcon = this.leaflet.divIcon({
+        className: 'telemetry-map__ab-icon-shell',
+        html: '<span class="telemetry-map__ab-icon telemetry-map__ab-icon--end">B</span>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -28],
+      });
+      this.leaflet
+        .marker(coords[coords.length - 1], { icon: endIcon })
+        .bindPopup('Fin del recorrido')
+        .addTo(this.markerLayer);
+
+      boundsPoints.push(...coords);
+    }
+
+    // Dibujar marcadores de dispositivos
     for (const marker of this.markers()) {
       const isActive = marker.imei === this.activeImei();
       const vehicleIcon = this.leaflet.divIcon({
@@ -189,61 +225,20 @@ export class TelemetryMapComponent implements AfterViewInit, OnChanges, OnDestro
       boundsPoints.push([marker.latitude, marker.longitude]);
     }
 
-    if (!this.hasFittedBounds) {
+    // Ajustar viewport
+    if (!this.hasFittedBounds && boundsPoints.length > 0) {
       this.hasFittedBounds = true;
-
-      if (boundsPoints.length === 0) {
-        this.map.setView([4.5709, -74.2973], 6);
-        return;
-      }
 
       if (boundsPoints.length === 1) {
         this.map.setView(boundsPoints[0], 14);
-        return;
+      } else {
+        this.map.fitBounds(boundsPoints, { padding: [24, 24] });
       }
-
-      this.map.fitBounds(boundsPoints, {
-        padding: [24, 24],
-      });
+    } else if (!this.hasFittedBounds && boundsPoints.length === 0) {
+      this.map.setView([4.5709, -74.2973], 6);
     } else if (this.followPosition() && boundsPoints.length > 0) {
       const lastPoint = boundsPoints[boundsPoints.length - 1];
       this.map.panTo(lastPoint, { animate: true, duration: 0.5 });
     }
-  }
-
-  private segmentByIgnition(
-    points: readonly TelemetryMapMarker[],
-  ): Array<{ coords: [number, number][]; color: string }> {
-    if (points.length < 2) {
-      return [];
-    }
-
-    const segments: Array<{ coords: [number, number][]; color: string }> = [];
-    const colorFor = (ignitionOn: boolean | undefined): string =>
-      ignitionOn === true ? '#f5c842' : '#aaaaaa';
-
-    let currentColor = colorFor(points[0].ignitionOn);
-    let currentCoords: [number, number][] = [[points[0].latitude, points[0].longitude]];
-
-    for (let i = 1; i < points.length; i++) {
-      const point = points[i];
-      const pointColor = colorFor(point.ignitionOn);
-      const coord: [number, number] = [point.latitude, point.longitude];
-
-      if (pointColor !== currentColor) {
-        currentCoords.push(coord);
-        segments.push({ coords: currentCoords, color: currentColor });
-        currentCoords = [coord];
-        currentColor = pointColor;
-      } else {
-        currentCoords.push(coord);
-      }
-    }
-
-    if (currentCoords.length >= 2) {
-      segments.push({ coords: currentCoords, color: currentColor });
-    }
-
-    return segments;
   }
 }

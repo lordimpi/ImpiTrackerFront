@@ -1,8 +1,10 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { ApiError } from '../../../shared/models/api-error.model';
 import { normalizeApiError, unwrapApiResponse } from '../../../shared/utils/api-response.util';
 import { TelemetryApiService } from '../data-access/telemetry-api.service';
+import { TelemetryHubService } from '../data-access/telemetry-hub.service';
 import {
   DEFAULT_EVENTS_LIMIT,
   DEFAULT_POSITIONS_LIMIT,
@@ -38,6 +40,38 @@ interface DeviceTelemetryState {
 })
 export class DeviceTelemetryFacade {
   private readonly telemetryApi = inject(TelemetryApiService);
+  private readonly hub = inject(TelemetryHubService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  constructor() {
+    this.hub.positionUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        const currentImei = this.imei();
+        if (!currentImei || event.imei !== currentImei) return;
+
+        const device = this.device();
+        if (!device) return;
+
+        this.patchState({
+          device: {
+            ...device,
+            lastSeenAtUtc: event.occurredAtUtc,
+            lastPosition: {
+              occurredAtUtc: event.occurredAtUtc,
+              receivedAtUtc: event.occurredAtUtc,
+              gpsTimeUtc: device.lastPosition?.gpsTimeUtc ?? null,
+              latitude: event.latitude ?? device.lastPosition?.latitude ?? 0,
+              longitude: event.longitude ?? device.lastPosition?.longitude ?? 0,
+              speedKmh: event.speedKmh ?? null,
+              headingDeg: event.headingDeg ?? null,
+              packetId: device.lastPosition?.packetId ?? '',
+              sessionId: device.lastPosition?.sessionId ?? '',
+            },
+          },
+        });
+      });
+  }
 
   private readonly state = signal<DeviceTelemetryState>({
     context: { kind: 'self' },
@@ -110,6 +144,7 @@ export class DeviceTelemetryFacade {
         errorMessage: null,
         notFound: false,
       });
+      this.hub.connect();
     } catch (error) {
       this.handleLoadError(error);
     } finally {
