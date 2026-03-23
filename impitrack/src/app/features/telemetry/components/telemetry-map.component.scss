@@ -62,6 +62,31 @@
   color: var(--beacon-green);
 }
 
+:host ::ng-deep .telemetry-map__ab-icon-shell {
+  background: transparent;
+  border: 0;
+}
+
+:host ::ng-deep .telemetry-map__ab-icon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+:host ::ng-deep .telemetry-map__ab-icon--start {
+  background: #22c55e;
+}
+
+:host ::ng-deep .telemetry-map__ab-icon--end {
+  background: #f97316;
+}
+
 :host ::ng-deep .leaflet-control-attribution {
   background: rgba(6, 16, 22, 0.82);
   color: var(--ink-faint);

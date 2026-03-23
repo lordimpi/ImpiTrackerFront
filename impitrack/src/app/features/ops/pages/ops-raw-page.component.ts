@@ -75,6 +75,18 @@ export class OpsRawPageComponent implements OnInit, OnDestroy {
     { label: '50', value: 50 },
     { label: '100', value: 100 },
   ];
+  protected expandedRows: Record<string, boolean> = {};
+
+  protected toggleRow(packet: any): void {
+    const key = packet.packetId;
+    if (this.expandedRows[key]) {
+      delete this.expandedRows[key];
+    } else {
+      this.expandedRows[key] = true;
+    }
+    this.expandedRows = { ...this.expandedRows };
+  }
+
   protected readonly detailVisible = signal(false);
   protected readonly detailPacket = signal<RawPacketRecordDto | null>(null);
   protected readonly detailPending = signal(false);

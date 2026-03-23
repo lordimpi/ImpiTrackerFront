@@ -718,6 +718,24 @@
   }
 }
 
+@media (max-width: 768px) {
+  .telemetry-page__panel {
+    bottom: var(--tab-bar-h, 56px);
+  }
+
+  .tp-panel-backdrop {
+    bottom: var(--tab-bar-h, 56px);
+  }
+
+  .tp-panel-open-btn {
+    bottom: calc(var(--tab-bar-h, 56px) + 16px);
+  }
+
+  .tp-body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
 @media (max-width: 600px) {
   .tp-summary-grid {
     grid-template-columns: 1fr;

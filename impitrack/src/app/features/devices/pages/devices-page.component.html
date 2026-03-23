@@ -74,23 +74,27 @@
         </div>
       </div>
     } @else if (hasDevices()) {
-      <p-table [value]="devices()" responsiveLayout="scroll">
+      <p-table [value]="devices()" [expandedRowKeys]="expandedRows" dataKey="imei" responsiveLayout="scroll">
         <ng-template pTemplate="header">
           <tr>
+            <th class="mobile-expand-col"></th>
             <th>IMEI</th>
-            <th>Fecha de vinculacion</th>
-            <th>Estado</th>
+            <th class="col-hide-mobile">Fecha de vinculacion</th>
+            <th class="col-hide-mobile">Estado</th>
             <th class="devices-table__actions">Acciones</th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-device>
           <tr>
+            <td class="mobile-expand-col">
+              <button pButton type="button" [icon]="expandedRows[device.imei] ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="p-button-text p-button-sm" (click)="toggleRow(device)"></button>
+            </td>
             <td>
               <span class="device-imei">{{ device.imei }}</span>
             </td>
-            <td>{{ device.boundAtUtc | date: 'medium' }}</td>
-            <td>
+            <td class="col-hide-mobile">{{ device.boundAtUtc | date: 'medium' }}</td>
+            <td class="col-hide-mobile">
               <p-tag value="Vinculado" severity="info"></p-tag>
             </td>
             <td class="devices-table__actions">
@@ -111,6 +115,23 @@
                 [disabled]="isUnbinding(device.imei)"
                 (click)="confirmUnbind(device.imei)"
               ></button>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="rowexpansion" let-device>
+          <tr>
+            <td [attr.colspan]="5">
+              <dl class="mobile-row-detail">
+                <div>
+                  <dt>Fecha</dt>
+                  <dd>{{ device.boundAtUtc | date: 'medium' }}</dd>
+                </div>
+                <div>
+                  <dt>Estado</dt>
+                  <dd>Vinculado</dd>
+                </div>
+              </dl>
             </td>
           </tr>
         </ng-template>

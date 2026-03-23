@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://localhost:54124',
+  apiBaseUrl: 'https://api.impitrack.com',
   appName: 'IMPITrack Frontend',
 };

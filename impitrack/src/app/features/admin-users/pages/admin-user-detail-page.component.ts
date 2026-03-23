@@ -76,6 +76,18 @@ export class AdminUserDetailPageComponent {
     { label: '50', value: 50 },
     { label: '100', value: 100 },
   ];
+  protected expandedRows: Record<string, boolean> = {};
+
+  protected toggleRow(device: any): void {
+    const key = device.imei;
+    if (this.expandedRows[key]) {
+      delete this.expandedRows[key];
+    } else {
+      this.expandedRows[key] = true;
+    }
+    this.expandedRows = { ...this.expandedRows };
+  }
+
   protected readonly searchValue = signal('');
   protected readonly planErrorMessage = signal<string | null>(null);
   protected readonly bindErrorMessage = signal<string | null>(null);

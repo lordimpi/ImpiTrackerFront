@@ -128,13 +128,7 @@ export class DeviceTelemetryPageComponent {
       return this.summaryMarkers();
     }
 
-    return [trip.startPosition, trip.endPosition].map((position) => ({
-      imei: trip.imei,
-      latitude: position.latitude,
-      longitude: position.longitude,
-      lastSeenAtUtc: position.receivedAtUtc,
-      protocol: this.device()?.protocol ?? null,
-    }));
+    return [];
   });
   protected readonly tripMapPathPoints = computed<readonly TelemetryMapMarker[]>(() => {
     const trip = this.selectedTrip();

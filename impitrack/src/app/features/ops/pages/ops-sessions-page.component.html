@@ -40,32 +40,65 @@
         <p-message severity="error" [text]="featureError() ?? ''"></p-message>
       </div>
     } @else if (hasSessions()) {
-      <p-table [value]="sessions()" responsiveLayout="scroll">
+      <p-table [value]="sessions()" [expandedRowKeys]="expandedRows" dataKey="sessionId" responsiveLayout="scroll">
         <ng-template pTemplate="header">
           <tr>
-            <th>Sesion</th>
+            <th class="mobile-expand-col"></th>
+            <th class="col-hide-mobile">Sesion</th>
             <th>IMEI</th>
-            <th>IP</th>
-            <th>Puerto</th>
-            <th>Ultimo visto</th>
-            <th>Frames</th>
+            <th class="col-hide-mobile">IP</th>
+            <th class="col-hide-mobile">Puerto</th>
+            <th class="col-hide-mobile">Ultimo visto</th>
+            <th class="col-hide-mobile">Frames</th>
             <th>Estado</th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-session>
           <tr>
-            <td>{{ session.sessionId }}</td>
+            <td class="mobile-expand-col">
+              <button pButton type="button" [icon]="expandedRows[session.sessionId] ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="p-button-text p-button-sm" (click)="toggleRow(session)"></button>
+            </td>
+            <td class="col-hide-mobile">{{ session.sessionId }}</td>
             <td>{{ session.imei || 'No disponible' }}</td>
-            <td>{{ session.remoteIp }}</td>
-            <td>{{ session.port }}</td>
-            <td>{{ session.lastSeenAtUtc | date: 'medium' }}</td>
-            <td>{{ session.framesIn }} / invalidos {{ session.framesInvalid }}</td>
+            <td class="col-hide-mobile">{{ session.remoteIp }}</td>
+            <td class="col-hide-mobile">{{ session.port }}</td>
+            <td class="col-hide-mobile">{{ session.lastSeenAtUtc | date: 'medium' }}</td>
+            <td class="col-hide-mobile">{{ session.framesIn }} / invalidos {{ session.framesInvalid }}</td>
             <td>
               <p-tag
                 [value]="session.isActive ? 'Activa' : 'Cerrada'"
                 [severity]="session.isActive ? 'success' : 'secondary'"
               ></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="rowexpansion" let-session>
+          <tr>
+            <td [attr.colspan]="8">
+              <dl class="mobile-row-detail">
+                <div>
+                  <dt>Sesion ID</dt>
+                  <dd>{{ session.sessionId }}</dd>
+                </div>
+                <div>
+                  <dt>IP</dt>
+                  <dd>{{ session.remoteIp }}</dd>
+                </div>
+                <div>
+                  <dt>Puerto</dt>
+                  <dd>{{ session.port }}</dd>
+                </div>
+                <div>
+                  <dt>Ultimo visto</dt>
+                  <dd>{{ session.lastSeenAtUtc | date: 'medium' }}</dd>
+                </div>
+                <div>
+                  <dt>Frames</dt>
+                  <dd>{{ session.framesIn }} / invalidos {{ session.framesInvalid }}</dd>
+                </div>
+              </dl>
             </td>
           </tr>
         </ng-template>
