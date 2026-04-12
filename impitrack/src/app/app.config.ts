@@ -29,6 +29,9 @@ export const appConfig: ApplicationConfig = {
       ripple: false,
       theme: {
         preset: Aura,
+        options: {
+          darkModeSelector: '.app-dark',
+        },
       },
     }),
     provideAppInitializer(() => inject(AuthFacade).initialize()),
